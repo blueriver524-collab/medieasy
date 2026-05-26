@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11장 의료정보 의무기록관리 — 요양병원 인증기준 대시보드</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Noto Sans KR','Apple SD Gothic Neo',sans-serif; background: #f0f4f8; min-height: 100vh; color: #2d3748; }
+
+  /* ── HEADER ── */
+  .page-header {
+    background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+    padding: 22px 28px; color: #fff; text-align: center;
+  }
+  .page-header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .page-header p  { font-size: 13px; opacity: .8; margin-top: 4px; }
+
+  /* ── LEGEND ── */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 18px;
+    padding: 11px 24px;
+    background: #fff; border-bottom: 1px solid #e2e8f0;
+    font-size: 12px; color: #4a5568;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .l-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 4px;
+    font-size: 10px; font-weight: 700; color: #fff;
+  }
+  .l-badge.s { background: #6b46c1; }
+  .l-badge.p { background: #2b6cb0; }
+  .l-icon { width: 14px; height: 14px; border-radius: 3px; }
+  .li-doc { background: #fef3c7; border: 1px solid #d97706; }
+  .li-obs { background: #dcfce7; border: 1px solid #16a34a; }
+  .li-int { background: #dbeafe; border: 1px solid #2563eb; }
+  .li-rec { background: #f3e8ff; border: 1px solid #7c3aed; }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex; flex-wrap: wrap; gap: 2px;
+    background: #2d3748; padding: 0 20px;
+  }
+  .tab-btn {
+    flex: 1; min-width: 80px; padding: 10px 6px;
+    background: transparent; border: none; border-bottom: 3px solid transparent;
+    color: #a0aec0; cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    text-align: center; white-space: nowrap; transition: all .2s;
+  }
+  .tab-btn:hover { color: #e2e8f0; }
+  .tab-btn.active { color: #fff; border-bottom-color: #63b3ed; background: rgba(255,255,255,.05); }
+  .tab-btn .num {
+    display: block; width: 22px; height: 22px;
+    border-radius: 50%; margin: 0 auto 4px;
+    font-size: 11px; line-height: 22px;
+    background: rgba(255,255,255,.15); color: #fff;
+  }
+
+  /* ── CONTENT ── */
+  .content { display: none; padding: 20px 20px 36px; max-width: 900px; margin: 0 auto; }
+  .content.active { display: block; }
+
+  /* section header */
+  .section-box {
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 16px; font-weight: 700; color: #1a365d;
+  }
+  .section-box .s-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0;
+  }
+
+  /* info cards */
+  .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .info-card {
+    background: #fff; border-radius: 10px; padding: 14px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  }
+  .info-card.loc { background: #f0fff4; border: 1px solid #c6f6d5; }
+  .info-card.who { background: #fffaf0; border: 1px solid #fbd38d; }
+  .info-card h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+  .info-card.loc h3 { color: #276749; }
+  .info-card.who h3 { color: #c05621; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag {
+    display: inline-block; padding: 3px 9px; border-radius: 999px;
+    font-size: 12px; font-weight: 500;
+  }
+  .info-card.loc .tag { background: #c6f6d5; color: #22543d; }
+  .info-card.who .tag { background: #fbd38d; color: #7b341e; }
+
+  /* survey items */
+  .survey-block {
+    background: #fff; border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    margin-bottom: 16px; overflow: hidden;
+  }
+  .survey-item { border-bottom: 1px solid #f0f4f8; }
+  .survey-item:last-child { border-bottom: none; }
+
+  .survey-header {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 16px; cursor: default;
+  }
+  .survey-header.type-s { background: #faf5ff; border-left: 3px solid #e9d8fd; }
+  .survey-header.type-p { background: #ebf8ff; border-left: 3px solid #bee3f8; }
+
+  .type-badge {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #fff; margin-top: 1px;
+  }
+  .type-badge.s { background: #6b46c1; }
+  .type-badge.p { background: #2b6cb0; }
+
+  .survey-title { font-size: 13px; font-weight: 600; color: #2d3748; line-height: 1.5; }
+
+  .survey-body { padding: 8px 16px 12px 56px; }
+
+  .method-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+  .method-row:last-child { margin-bottom: 0; }
+  .method-icon {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+  }
+  .icon-doc { background: #fef3c7; color: #92400e; }
+  .icon-obs { background: #dcfce7; color: #166534; }
+  .icon-int { background: #dbeafe; color: #1e40af; }
+  .icon-rec { background: #f3e8ff; color: #6b21a8; }
+  .method-text { font-size: 12px; font-weight: 600; color: #4a5568; }
+  .method-sub  { font-size: 11px; color: #718096; line-height: 1.4; margin-top: 1px; }
+
+  /* checklist */
+  .checklist-block {
+    background: #fff; border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07); overflow: hidden;
+  }
+  .checklist-head {
+    background: #f0fff4; padding: 10px 16px;
+    font-size: 12px; font-weight: 700; color: #276749;
+    text-transform: uppercase; letter-spacing: .5px;
+    border-bottom: 1px solid #c6f6d5;
+  }
+  .checklist-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 16px; border-bottom: 1px solid #f7fafc;
+    font-size: 13px; color: #4a5568; cursor: pointer;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .checklist-item:hover { background: #f7fafc; }
+  .check-box {
+    flex-shrink: 0; width: 16px; height: 16px; border-radius: 3px;
+    border: 2px solid #cbd5e0; margin-top: 2px; transition: all .15s;
+  }
+  .checklist-item.done .check-box { background: #48bb78; border-color: #48bb78; }
+  .checklist-item.done span { text-decoration: line-through; color: #a0aec0; }
+
+  /* footer */
+  .footer {
+    text-align: center; padding: 18px;
+    border-top: 1px solid #e2e8f0;
+    background: #fff; color: #a0aec0; font-size: 11px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="page-header">
+  <h1>📋 의료기관평가인증 · 11장 의료정보 의무기록관리 조사방법 가이드</h1>
+  <p>요양병원 인증기준 — 기준 3개 · S:2 P:15</p>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><span class="l-badge s">S</span> Structure — 규정·문서</div>
+  <div class="legend-item"><span class="l-badge p">P</span> Process — 관찰·면담·기록</div>
+  <div class="legend-item"><span class="l-icon li-doc"></span> 규정·문서 검토</div>
+  <div class="legend-item"><span class="l-icon li-obs"></span> 현장 관찰</div>
+  <div class="legend-item"><span class="l-icon li-int"></span> 직원 면담</div>
+  <div class="legend-item"><span class="l-icon li-rec"></span> 기록 확인</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab(0)">
+    <span class="num">11.1</span>의료정보·의무기록
+  </button>
+  <button class="tab-btn" onclick="showTab(1)">
+    <span class="num">11.2</span>의무기록 작성 완결
+  </button>
+  <button class="tab-btn" onclick="showTab(2)">
+    <span class="num">11.3</span>개인정보 보호·보안
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     TAB 1 · 11.1 의료정보/의무기록 관리
+═══════════════════════════════════════════════ -->
+<div class="content active">
+
+  <div class="section-box" style="background:#ebf8ff;">
+    <div class="s-icon" style="background:#bee3f8;">📋</div>
+    기준 11.1. 의료정보/의무기록을 관리한다
+  </div>
+
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag">회의실</span>
+        <span class="tag">의무기록실</span>
+        <span class="tag">의무기록 보관 장소</span>
+        <span class="tag">의무기록 사용 장소</span>
+        <span class="tag">병동·원무부서·검사실·외래진료실·치료실</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag">의료정보/의무기록 관리 ST 관련 직원</span>
+        <span class="tag">보건의료정보관리사</span>
+        <span class="tag">의무기록 관리 담당 직원</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- S1 -->
+  <div class="survey-block">
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <div class="survey-title">1. 의료정보/의무기록 관리에 대한 규정이 있다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📄</div>
+          <div>
+            <div class="method-text">규정·문서 검토</div>
+            <div class="method-sub">의료정보/의무기록 관리 규정 및 지침 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">2. 의료정보/의무기록의 접근 권한을 관리한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">현장 관찰</div>
+            <div class="method-sub">접근 권한 설정 및 통제 현황 관찰</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">직원 면담</div>
+            <div class="method-sub">접근 권한 부여·변경·회수 절차 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">접근 권한 관리 기록 및 로그 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">3. 의무기록 사본 발급을 관리한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">현장 관찰</div>
+            <div class="method-sub">사본 발급 절차 및 창구 운영 현황 관찰</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">직원 면담</div>
+            <div class="method-sub">사본 발급 요청·처리·기록 절차 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">사본 발급 대장 및 동의서 기록 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">4. 의무기록 대출, 열람 및 반납을 관리한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">현장 관찰</div>
+            <div class="method-sub">대출·반납 관리 현황 및 보관 상태 관찰</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">직원 면담</div>
+            <div class="method-sub">대출·열람·반납 절차 및 권한 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">대출 대장 및 반납 기록 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">5. 금기약어 및 금기기호를 관리한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">현장 관찰</div>
+            <div class="method-sub">금기약어·금기기호 목록 게시 및 적용 현황 관찰</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">직원 면담</div>
+            <div class="method-sub">금기약어 관리 절차 및 직원 인지도 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">금기약어·기호 목록 및 개정 이력 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P6 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">6. 의무기록을 보관하고 관리한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">현장 관찰</div>
+            <div class="method-sub">의무기록 보관 장소 환경 및 보안 상태 관찰</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">직원 면담</div>
+            <div class="method-sub">보관 기간·방법·폐기 절차 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">보관 현황 및 이관·폐기 기록 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /survey-block -->
+
+  <!-- CHECKLIST -->
+  <div class="checklist-block">
+    <div class="checklist-head">✅ 현장 점검 체크리스트 — 11.1</div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>[S] 의료정보/의무기록 관리 규정이 있다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>의무기록 접근 권한 관리 현황을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>의무기록 사본 발급 절차 및 기록을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>의무기록 대출·열람·반납 관리 기록을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>금기약어·금기기호 목록 및 관리 현황을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>의무기록 보관 장소 환경 및 보관 기록을 확인한다</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     TAB 2 · 11.2 의무기록 작성 완결
+═══════════════════════════════════════════════ -->
+<div class="content">
+
+  <div class="section-box" style="background:#fef3c7;">
+    <div class="s-icon" style="background:#fde68a;">✍️</div>
+    기준 11.2. 의무기록의 작성을 완결한다
+  </div>
+
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag">회의실</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag">의료정보/의무기록 관리 ST 관련 직원</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="survey-block">
+    <!-- P1 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">1. 의학적 초기평가 기록을 작성한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">의학적 초기평가 기록 작성 여부 및 완결성 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">2. 간호 초기평가 기록을 작성한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">간호 초기평가 기록 작성 여부 및 완결성 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">3. 경과기록을 작성한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">경과기록 작성 시기 및 내용 완결성 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">4. 간호기록을 작성한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">간호기록 작성 여부 및 내용 적절성 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">5. 퇴원요약을 작성한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">퇴원요약 작성 시기 및 포함 내용 완결성 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P6 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">6. 표준화된 진단코드를 사용한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">표준 진단코드(KCD) 사용 현황 및 정확성 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /survey-block -->
+
+  <!-- CHECKLIST -->
+  <div class="checklist-block">
+    <div class="checklist-head">✅ 현장 점검 체크리스트 — 11.2</div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>의학적 초기평가 기록 작성 여부 및 완결성을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>간호 초기평가 기록 작성 여부 및 완결성을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>경과기록 작성 시기 및 내용 완결성을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>간호기록 작성 여부 및 내용 적절성을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>퇴원요약 작성 시기 및 포함 내용을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>표준화된 진단코드(KCD) 사용 여부를 확인한다</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     TAB 3 · 11.3 개인정보 보호 및 보안
+═══════════════════════════════════════════════ -->
+<div class="content">
+
+  <div class="section-box" style="background:#fce7f3;">
+    <div class="s-icon" style="background:#fbcfe8;">🔐</div>
+    기준 11.3. 개인정보를 보호하고 안전하게 관리한다
+  </div>
+
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag">회의실</span>
+        <span class="tag">정보시스템 접근통제구역</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag">인적자원관리 ST 관련 직원</span>
+        <span class="tag">의료정보/의무기록 관리 ST 관련 직원</span>
+        <span class="tag">개인정보 보호 담당 직원</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="survey-block">
+    <!-- S1 -->
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <div class="survey-title">1. 개인정보 보호 및 보안에 대한 규정이 있다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📄</div>
+          <div>
+            <div class="method-text">규정·문서 검토</div>
+            <div class="method-sub">개인정보 보호 규정, 개인정보처리방침, 보안 지침 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">2. 직원의 개인정보 보호에 관한 교육을 실시한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">직원 면담</div>
+            <div class="method-sub">교육 내용 인지도 및 이수 여부 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">교육 계획·실시 기록 및 이수자 명단 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">3. 개인정보처리방침을 수립하여 운영한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">현장 관찰</div>
+            <div class="method-sub">개인정보처리방침 게시 현황 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">개인정보처리방침 내용 및 갱신 이력 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">4. 정보시스템의 접근권한을 관리한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">현장 관찰</div>
+            <div class="method-sub">정보시스템 접근통제구역 보안 환경 관찰</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">직원 면담</div>
+            <div class="method-sub">접근권한 부여·변경·회수 절차 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">접근권한 현황 및 변경 기록 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <div class="survey-title">5. 개인정보 침해사고 대응절차를 운영한다</div>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">직원 면담</div>
+            <div class="method-sub">침해사고 발생 시 신고·대응 절차 인지 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">기록 확인</div>
+            <div class="method-sub">침해사고 대응 절차서 및 이력 기록 검토</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /survey-block -->
+
+  <!-- CHECKLIST -->
+  <div class="checklist-block">
+    <div class="checklist-head">✅ 현장 점검 체크리스트 — 11.3</div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>[S] 개인정보 보호 및 보안 관련 규정이 있다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>개인정보 보호 교육 실시 기록 및 이수자 명단을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>개인정보처리방침 게시 및 갱신 현황을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>정보시스템 접근권한 관리 기록을 확인한다</span>
+    </div>
+    <div class="checklist-item" onclick="this.classList.toggle('done')">
+      <div class="check-box"></div><span>개인정보 침해사고 대응절차 및 이력을 확인한다</span>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">의료기관평가인증원 인증기준 요약 대시보드 · 요양병원 11장 의료정보 의무기록관리</div>
+
+<script>
+function showTab(n) {
+  document.querySelectorAll('.content').forEach(function(c, i) {
+    c.classList.toggle('active', i === n);
+  });
+  document.querySelectorAll('.tab-btn').forEach(function(b, i) {
+    b.classList.toggle('active', i === n);
+  });
+}
+</script>
+</body>
+</html>

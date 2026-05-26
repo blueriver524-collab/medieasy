@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>6장 질향상 및 환자안전 활동 — 요양병원 인증기준 대시보드</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    background: #f0f4f8;
+    color: #2d3748;
+    font-size: 14px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+    color: white;
+    padding: 28px 32px 24px;
+    text-align: center;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .header p  { font-size: 13px; margin-top: 6px; opacity: 0.85; }
+  .header .badge-row {
+    margin-top: 14px;
+    display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 24px;
+    display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .dot-s   { background: #6b46c1; }
+  .dot-p   { background: #2b6cb0; }
+  .dot-loc { background: #276749; }
+  .dot-who { background: #c05621; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex; gap: 0;
+    background: #2d3748;
+    overflow-x: auto;
+    padding: 0 16px;
+  }
+  .tab-btn {
+    flex: 1; min-width: 80px;
+    padding: 12px 8px;
+    background: transparent;
+    color: #a0aec0;
+    border: none; border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: #e2e8f0; }
+  .tab-btn.active {
+    color: #fff;
+    border-bottom-color: #63b3ed;
+    background: rgba(255,255,255,0.05);
+  }
+  .tab-btn .num {
+    display: block;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    margin: 0 auto 4px;
+    font-size: 11px;
+    line-height: 22px;
+    background: rgba(255,255,255,0.15);
+  }
+
+  /* ── Content ── */
+  .content {
+    display: none;
+    padding: 20px 20px 32px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .content.active { display: block; }
+
+  /* ── Section title ── */
+  .section-title {
+    font-size: 17px; font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #bee3f8;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .icon {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+
+  /* ── Info row ── */
+  .info-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 520px) { .info-row { grid-template-columns: 1fr; } }
+  .info-card { border-radius: 10px; padding: 12px 14px; }
+  .info-card.loc { background: #f0fff4; border: 1px solid #c6f6d5; }
+  .info-card.who { background: #fffaf0; border: 1px solid #fbd38d; }
+  .info-card h3 {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;
+  }
+  .info-card.loc h3 { color: #276749; }
+  .info-card.who h3 { color: #c05621; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .tag-loc { background: #c6f6d5; color: #276749; }
+  .tag-who { background: #fbd38d; color: #7b341e; }
+
+  /* ── Survey items ── */
+  .survey-list { display: flex; flex-direction: column; gap: 10px; }
+  .survey-item { border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; }
+  .survey-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+  .survey-header.type-s { background: #faf5ff; border-bottom: 1px solid #e9d8fd; }
+  .survey-header.type-p { background: #ebf8ff; border-bottom: 1px solid #bee3f8; }
+  .type-badge {
+    flex-shrink: 0; width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: white;
+  }
+  .type-badge.s { background: #6b46c1; }
+  .type-badge.p { background: #2b6cb0; }
+  .item-title { font-weight: 700; font-size: 13px; }
+  .survey-body { padding: 10px 14px; background: #fff; }
+  .method-row {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 0; border-bottom: 1px solid #f7fafc;
+  }
+  .method-row:last-child { border-bottom: none; }
+  .method-icon {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center; font-size: 11px;
+  }
+  .icon-doc { background: #fef3c7; color: #92400e; }
+  .icon-obs { background: #dcfce7; color: #166534; }
+  .icon-int { background: #dbeafe; color: #1e40af; }
+  .icon-rec { background: #f3e8ff; color: #6b21a8; }
+  .icon-pat { background: #fce7f3; color: #9d174d; }
+  .method-text { font-size: 12px; line-height: 1.6; color: #4a5568; }
+  .method-sub { font-size: 11px; color: #718096; margin-top: 2px; line-height: 1.5; }
+  .note {
+    margin-top: 4px; font-size: 11px; color: #805ad5;
+    padding: 4px 8px; background: #faf5ff; border-radius: 4px;
+    border-left: 3px solid #9f7aea;
+  }
+
+  /* ── Checklist ── */
+  .checklist-wrap {
+    background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 10px; padding: 14px 16px; margin-top: 16px;
+  }
+  .checklist-title {
+    font-size: 12px; font-weight: 700; color: #2d3748;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+  }
+  .checklist-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 0; border-bottom: 1px solid #f7fafc;
+    font-size: 12px; color: #4a5568;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .check-box {
+    flex-shrink: 0; width: 16px; height: 16px; border-radius: 3px;
+    border: 2px solid #cbd5e0; margin-top: 1px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center; padding: 16px; font-size: 11px; color: #a0aec0;
+    border-top: 1px solid #e2e8f0; background: #fff; margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 의료기관평가인증 · 6장 질향상 및 환자안전 활동 조사방법 가이드</h1>
+  <p>요양병원 · 인증기준</p>
+  <div class="badge-row">
+    <span class="badge">3개 기준</span>
+    <span class="badge">S:4 P:10</span>
+    <span class="badge">전 항목 필수</span>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot dot-s"></div><b>S (Structure)</b> — 규정·문서 검토</div>
+  <div class="legend-item"><div class="legend-dot dot-p"></div><b>P (Process)</b> — 관찰·면담·기록 확인</div>
+  <div class="legend-item"><div class="legend-dot dot-loc"></div>조사 장소</div>
+  <div class="legend-item"><div class="legend-dot dot-who"></div>조사 대상 직원</div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab(0)"><span class="num">6.1</span>운영체계</button>
+  <button class="tab-btn" onclick="showTab(1)"><span class="num">6.2</span>안전사건관리</button>
+  <button class="tab-btn" onclick="showTab(2)"><span class="num">6.3</span>질향상활동</button>
+</div>
+
+<!-- ════ TAB 0 : 6.1 질 향상과 환자안전 운영체계 ════ -->
+<div class="content active" id="tab-0">
+  <div class="section-title">
+    <div class="icon" style="background:#ebf8ff">📊</div>
+    기준 6.1 · 질 향상과 환자안전을 위한 운영체계가 있다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">회의실</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">질향상·환자안전 활동 ST 관련 직원</span>
+      </div>
+    </div>
+  </div>
+  <div class="survey-list">
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">질 향상과 환자안전에 대한 규정이 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">규정·지침서 검토</div>
+            <div class="method-sub">질 향상 및 환자안전 활동 범위, 위원회 구성·운영, 보고 체계 포함 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">질 향상과 환자안전을 위한 위원회를 운영한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">위원회 현장 확인</div><div class="method-sub">위원회 구성원, 정기 개최 여부 및 의결 사항 이행 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">담당 직원 면담</div><div class="method-sub">위원회 역할 및 운영 절차 숙지 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">위원회 회의록, 참석자 명단, 의결 내용 및 후속 조치 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">질 향상과 환자안전 활동을 수행하는 부서 및 적격한 자가 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">조직도·직무기술서 검토</div>
+            <div class="method-sub">담당 부서 지정, 담당자 자격 기준 및 역할 명시 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">질 향상과 환자안전 활동 계획이 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">연간 활동 계획서 검토</div>
+            <div class="method-sub">연간 활동 목표, 주제 선정 기준, 일정 및 평가 방법 포함 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">질 향상과 환자안전 활동을 위해 필요한 자원을 지원한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">현장 확인</div><div class="method-sub">활동 수행에 필요한 인력·예산·정보시스템 지원 현황 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">경영진·담당자 면담</div><div class="method-sub">경영진의 자원 지원 의지 및 실제 배분 현황 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">예산 배정 내역, 교육·훈련 지원 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 현장 점검 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div><span>질 향상과 환자안전에 대한 규정이 있다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>질 향상과 환자안전을 위한 위원회를 운영한다 (회의록·의결 내용)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>활동을 수행하는 부서 및 적격한 자가 있다 (직무기술서)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>질 향상과 환자안전 활동 계획이 있다 (연간 계획서)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>필요한 자원을 지원한다 (예산·인력·시스템)</span></div>
+  </div>
+</div>
+
+<!-- ════ TAB 1 : 6.2 환자안전사건 관리 ════ -->
+<div class="content" id="tab-1">
+  <div class="section-title">
+    <div class="icon" style="background:#fef3c7">⚠️</div>
+    기준 6.2 · 환자안전사건을 관리한다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">회의실</span>
+        <span class="tag tag-loc">환자 진료·치료가 이루어지는 모든 부서</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">질향상·환자안전 ST 관련 직원</span>
+        <span class="tag tag-who">의사</span>
+        <span class="tag tag-who">간호사</span>
+        <span class="tag tag-who">의료기사</span>
+        <span class="tag tag-who">외부보고 담당 직원</span>
+        <span class="tag tag-who">경영진</span>
+      </div>
+    </div>
+  </div>
+  <div class="survey-list">
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">환자안전사건 관리 절차가 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">규정·절차서 검토</div>
+            <div class="method-sub">근접오류·위해사건·적신호사건 정의, 보고 채널, 분류·분석·개선 절차, 외부 보고 기준 포함 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">직원은 환자안전사건의 정의를 알고 발생 시 보고한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">보고 시스템 현장 확인</div><div class="method-sub">보고 시스템(전산·서면) 운영 및 접근성 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원 면담</div><div class="method-sub">근접오류·위해사건·적신호사건 구분 및 보고 절차 숙지 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">보고 기록 확인</div><div class="method-sub">보고 건수, 유형별 분류 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">보고된 환자안전사건을 분류하고 분석한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">분석 과정 확인</div><div class="method-sub">사건 분류 기준 적용 및 근본원인 분석 수행 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">담당자 면담</div><div class="method-sub">분류 기준 숙지 및 분석 방법론(RCA 등) 이해 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">분석 기록 확인</div><div class="method-sub">사건 분류 현황, 근본원인 분석 보고서 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">환자안전사건 분석결과에 따라 개선활동을 수행한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">개선 활동 현장 확인</div><div class="method-sub">분석 결과에 따른 시스템·프로세스 개선 사항 적용 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">담당자·경영진 면담</div><div class="method-sub">개선 활동 내용 및 효과 모니터링 방법 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">개선 활동 계획서, 이행 현황 및 효과 평가 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">환자안전사건 결과를 경영진에게 보고하고 관련 직원과 공유한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">경영진·직원 면담</div><div class="method-sub">보고 주기 및 공유 방법(회의·공문·게시 등) 숙지 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">경영진 보고 기록, 직원 공유 자료(뉴스레터·교육 자료 등) 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">환자안전 주의경보 발령 시 관련 직원과 공유한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">현장 확인</div><div class="method-sub">환자안전 주의경보 수신 채널 및 내부 공유 체계 구축 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원 면담</div><div class="method-sub">주의경보 수신·전파 절차 및 내용 숙지 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">환자안전 주의경보 수신 기록 및 직원 공지 내역 확인</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 현장 점검 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div><span>환자안전사건 관리 절차가 있다 (근접오류·위해·적신호 구분)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>직원은 사건 정의를 알고 발생 시 보고한다 (보고 시스템 운영)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>보고된 사건을 분류하고 분석한다 (RCA 등 근본원인 분석)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>분석결과에 따라 개선활동을 수행한다 (이행 현황·효과 평가)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>결과를 경영진에게 보고하고 관련 직원과 공유한다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>환자안전 주의경보 발령 시 관련 직원과 공유한다</span></div>
+  </div>
+</div>
+
+<!-- ════ TAB 2 : 6.3 질 향상 활동 ════ -->
+<div class="content" id="tab-2">
+  <div class="section-title">
+    <div class="icon" style="background:#f0fff4">📈</div>
+    기준 6.3 · 의료기관의 질 향상 및 환자안전 활동을 수행한다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">회의실</span>
+        <span class="tag tag-loc">질향상·환자안전 활동 수행 부서</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">질향상·환자안전 ST 관련 직원</span>
+        <span class="tag tag-who">질향상·환자안전 활동 수행 부서</span>
+      </div>
+    </div>
+  </div>
+  <div class="survey-list">
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">우선순위에 따른 질 향상 및 환자안전 활동 주제를 선정한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">주제 선정 과정 확인</div><div class="method-sub">우선순위 기준(발생 빈도·심각도·개선 가능성 등) 적용 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">담당자 면담</div><div class="method-sub">주제 선정 근거 및 위원회 승인 절차 숙지 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">주제 선정 근거 문서, 위원회 승인 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">의료기관에서 선정한 질 향상 및 환자안전 활동방법을 사용한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">활동 현장 확인</div><div class="method-sub">PDCA·FOCUS-PDCA 등 선정된 활동 방법론 적용 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">수행 부서 면담</div><div class="method-sub">선정된 활동 방법론 이해 및 적용 능력 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">활동 기록 확인</div><div class="method-sub">활동 보고서, 단계별 수행 현황 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">선정된 주제에 따른 통계적 기법과 도구를 사용하여 자료를 분석한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">분석 결과 확인</div><div class="method-sub">관리도·파레토 차트·런 차트 등 통계 도구 사용 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">담당자 면담</div><div class="method-sub">통계적 기법 이해 및 분석 결과 해석 능력 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">데이터 수집·분석 결과 보고서, 통계 도구 활용 자료 확인</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 현장 점검 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div><span>우선순위에 따른 질향상·환자안전 활동 주제를 선정한다 (선정 근거)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>선정한 활동방법(PDCA 등)을 사용한다 (활동 보고서)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>통계적 기법과 도구를 사용하여 자료를 분석한다 (관리도·파레토 등)</span></div>
+  </div>
+</div>
+
+<div class="footer">의료기관평가인증원 인증기준 요약 대시보드 · 요양병원 6장 질향상 및 환자안전 활동</div>
+
+<script>
+function showTab(n) {
+  document.querySelectorAll('.content').forEach(function(c, i) { c.classList.toggle('active', i === n); });
+  document.querySelectorAll('.tab-btn').forEach(function(b, i) { b.classList.toggle('active', i === n); });
+}
+</script>
+</body>
+</html>

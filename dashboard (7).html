@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5장 환자권리존중 및 보호 — 요양병원 인증기준 대시보드</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    background: #f0f4f8;
+    color: #2d3748;
+    font-size: 14px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+    color: white;
+    padding: 28px 32px 24px;
+    text-align: center;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .header p  { font-size: 13px; margin-top: 6px; opacity: 0.85; }
+  .header .badge-row {
+    margin-top: 14px;
+    display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 24px;
+    display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .dot-s   { background: #6b46c1; }
+  .dot-p   { background: #2b6cb0; }
+  .dot-loc { background: #276749; }
+  .dot-who { background: #c05621; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex; gap: 0;
+    background: #2d3748;
+    overflow-x: auto;
+    padding: 0 16px;
+  }
+  .tab-btn {
+    flex: 1; min-width: 80px;
+    padding: 12px 8px;
+    background: transparent;
+    color: #a0aec0;
+    border: none; border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: #e2e8f0; }
+  .tab-btn.active {
+    color: #fff;
+    border-bottom-color: #63b3ed;
+    background: rgba(255,255,255,0.05);
+  }
+  .tab-btn .num {
+    display: block;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    margin: 0 auto 4px;
+    font-size: 11px;
+    line-height: 22px;
+    background: rgba(255,255,255,0.15);
+  }
+
+  /* ── Content ── */
+  .content {
+    display: none;
+    padding: 20px 20px 32px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .content.active { display: block; }
+
+  /* ── Section title ── */
+  .section-title {
+    font-size: 17px; font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #bee3f8;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .icon {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  /* ── Info row ── */
+  .info-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 520px) {
+    .info-row { grid-template-columns: 1fr; }
+  }
+  .info-card {
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .info-card.loc { background: #f0fff4; border: 1px solid #c6f6d5; }
+  .info-card.who { background: #fffaf0; border: 1px solid #fbd38d; }
+  .info-card h3 {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .info-card.loc h3 { color: #276749; }
+  .info-card.who h3 { color: #c05621; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    padding: 3px 10px; border-radius: 12px;
+    font-size: 12px; font-weight: 600;
+  }
+  .tag-loc { background: #c6f6d5; color: #276749; }
+  .tag-who { background: #fbd38d; color: #7b341e; }
+
+  /* ── Survey items ── */
+  .survey-list { display: flex; flex-direction: column; gap: 10px; }
+  .survey-item {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+  }
+  .survey-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+  }
+  .survey-header.type-s { background: #faf5ff; border-bottom: 1px solid #e9d8fd; }
+  .survey-header.type-p { background: #ebf8ff; border-bottom: 1px solid #bee3f8; }
+  .type-badge {
+    flex-shrink: 0;
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: white;
+  }
+  .type-badge.s { background: #6b46c1; }
+  .type-badge.p { background: #2b6cb0; }
+  .item-title { font-weight: 700; font-size: 13px; }
+  .survey-body { padding: 10px 14px; background: #fff; }
+  .method-row {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f7fafc;
+  }
+  .method-row:last-child { border-bottom: none; }
+  .method-icon {
+    flex-shrink: 0;
+    width: 22px; height: 22px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+  .icon-doc { background: #fef3c7; color: #92400e; }
+  .icon-obs { background: #dcfce7; color: #166534; }
+  .icon-int { background: #dbeafe; color: #1e40af; }
+  .icon-rec { background: #f3e8ff; color: #6b21a8; }
+  .icon-pat { background: #fce7f3; color: #9d174d; }
+  .method-text { font-size: 12px; line-height: 1.6; color: #4a5568; }
+  .method-sub { font-size: 11px; color: #718096; margin-top: 2px; line-height: 1.5; }
+  .note {
+    margin-top: 4px; font-size: 11px; color: #805ad5;
+    padding: 4px 8px; background: #faf5ff; border-radius: 4px;
+    border-left: 3px solid #9f7aea;
+  }
+
+  /* ── Checklist ── */
+  .checklist-wrap {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 16px;
+  }
+  .checklist-title {
+    font-size: 12px; font-weight: 700;
+    color: #2d3748; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .checklist-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f7fafc;
+    font-size: 12px; color: #4a5568;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .check-box {
+    flex-shrink: 0;
+    width: 16px; height: 16px; border-radius: 3px;
+    border: 2px solid #cbd5e0;
+    margin-top: 1px;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 11px;
+    color: #a0aec0;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🤝 의료기관평가인증 · 5장 환자권리존중 및 보호 조사방법 가이드</h1>
+  <p>요양병원 · 인증기준</p>
+  <div class="badge-row">
+    <span class="badge">6개 기준</span>
+    <span class="badge">S:9 P:21</span>
+    <span class="badge">전 항목 필수</span>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot dot-s"></div><b>S (Structure)</b> — 규정·문서 검토</div>
+  <div class="legend-item"><div class="legend-dot dot-p"></div><b>P (Process)</b> — 관찰·면담·기록 확인</div>
+  <div class="legend-item"><div class="legend-dot dot-loc"></div>조사 장소</div>
+  <div class="legend-item"><div class="legend-dot dot-who"></div>조사 대상 직원</div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab(0)"><span class="num">5.1</span>환자권리</button>
+  <button class="tab-btn" onclick="showTab(1)"><span class="num">5.2</span>취약환자</button>
+  <button class="tab-btn" onclick="showTab(2)"><span class="num">5.3</span>불만·고충</button>
+  <button class="tab-btn" onclick="showTab(3)"><span class="num">5.4</span>사회복지</button>
+  <button class="tab-btn" onclick="showTab(4)"><span class="num">5.5</span>동의서</button>
+  <button class="tab-btn" onclick="showTab(5)"><span class="num">5.6</span>편의·시설</button>
+</div>
+
+<!-- ════ TAB 0 : 5.1 환자 권리존중 및 안전보장 ════ -->
+<div class="content active" id="tab-0">
+  <div class="section-title">
+    <div class="icon" style="background:#ebf8ff">🤝</div>
+    기준 5.1 · 환자의 권리를 존중하고 안전을 보장한다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">전 부서</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">전 직원</span>
+        <span class="tag tag-who">환자 또는 보호자</span>
+      </div>
+    </div>
+  </div>
+  <div class="survey-list">
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">환자의 권리와 의무에 대한 규정이 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">규정·지침서 검토</div>
+            <div class="method-sub">환자 권리 항목(진료받을 권리, 알 권리, 비밀 보호, 동의 권리 등) 및 의무 포함 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">직원은 환자의 권리와 의무를 알고 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원 면담</div><div class="method-sub">환자 권리·의무 내용 숙지 여부 및 안내 방법 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">교육 기록 확인</div><div class="method-sub">환자 권리 관련 직원 교육 이수 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">환자에게 환자의 권리와 의무에 대한 정보를 제공한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">현장 관찰</div><div class="method-sub">환자 권리 안내문 게시 및 배포 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">환자·보호자 면담</div><div class="method-sub">권리 안내 제공 여부 및 내용 이해 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">환자 권리 안내 제공 확인 서명 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">진료과정에 환자가 참여한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">진료 현장 관찰</div><div class="method-sub">치료 계획 설명 및 환자 의견 반영 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">환자·보호자 면담</div><div class="method-sub">진료 과정 참여 경험 및 의견 반영 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">진료 기록 확인</div><div class="method-sub">환자 참여 내용 기록 여부 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">환자의 사생활보호 요구를 확인한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">현장 관찰</div><div class="method-sub">진료·처치 시 사생활 보호 조치(커튼, 가림막 등) 이행 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원·환자 면담</div><div class="method-sub">사생활 보호 요구 확인 절차 및 이행 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">사생활 보호 요구 기록 및 이행 내역 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">환자의 신체노출을 보호한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">처치·간호 현장 관찰</div><div class="method-sub">불필요한 신체 노출 최소화, 필요 시 가림 조치 이행 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원 면담</div><div class="method-sub">신체 노출 최소화 원칙 숙지 및 적용 여부 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">환자의 개인정보를 보호한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">현장 관찰</div><div class="method-sub">개인정보 포함 문서의 보관·파기 방법, 열람 접근 통제 이행 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원 면담</div><div class="method-sub">개인정보 보호 법규 및 내부 지침 숙지 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">개인정보 보호 교육 이수 및 동의서 관리 현황 확인</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 현장 점검 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div><span>환자의 권리와 의무에 대한 규정이 있다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>직원은 환자의 권리와 의무를 알고 있다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>환자에게 권리·의무에 대한 정보를 제공한다 (안내문 게시, 서명)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>진료과정에 환자가 참여한다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>환자의 사생활보호 요구를 확인한다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>환자의 신체노출을 보호한다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>환자의 개인정보를 보호한다</span></div>
+  </div>
+</div>
+
+<!-- ════ TAB 1 : 5.2 취약환자 권리보호 ════ -->
+<div class="content" id="tab-1">
+  <div class="section-title">
+    <div class="icon" style="background:#fef3c7">🛡</div>
+    기준 5.2 · 취약환자의 권리를 보호하고 안전을 보장한다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">전 부서</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">전 직원</span>
+      </div>
+    </div>
+  </div>
+  <div class="survey-list">
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">취약환자의 권리보호에 대한 규정이 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">규정·지침서 검토</div>
+            <div class="method-sub">취약환자 범위, 학대·폭력 대응 절차, 예방 활동, 신고 절차 포함 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">직원은 의사소통이 어려운 환자를 위한 지원체계를 알고 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원 면담</div><div class="method-sub">통역 서비스, 보완·대체 의사소통 도구 등 지원 방법 숙지 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">의사소통 지원 서비스 이용 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">직원은 학대 및 폭력피해자 발생 시 절차를 준수한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">현장 관찰</div><div class="method-sub">학대·폭력 의심 사례 식별 및 초기 대응 절차 이행 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원 면담</div><div class="method-sub">신고 의무 및 피해자 보호 절차 숙지 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">학대·폭력 신고 및 대응 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">학대 및 폭력피해자 발생 시 경영진에게 보고하고 개선활동을 수행한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">담당자·경영진 면담</div><div class="method-sub">보고 체계 및 후속 개선 활동 수행 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">보고 기록 및 개선 활동 결과 문서 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">학대 및 폭력 예방활동을 수행한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">현장 관찰</div><div class="method-sub">예방 교육 자료 비치, 안내문 게시 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원 면담</div><div class="method-sub">예방 활동 내용 및 시행 현황 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">예방 활동 계획 및 수행 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">직원은 학대 및 폭력 대응체계·예방활동에 관한 교육을 받고 그 내용을 이해한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원 면담</div><div class="method-sub">교육 내용 이해도 및 실제 적용 방법 숙지 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">교육 기록 확인</div><div class="method-sub">교육 이수 여부, 교육 내용 및 참석 명단 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">학대 및 폭력 신고절차에 대해 안내한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">현장 관찰</div><div class="method-sub">신고 방법 안내문(포스터, 리플릿 등) 비치·게시 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원·환자·보호자 면담</div><div class="method-sub">신고 절차 안내 제공 여부 및 인지 여부 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">거동이 불편한 환자의 편의를 위한 시설을 구비하고 직원은 이를 알고 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">시설 현장 관찰</div><div class="method-sub">휠체어·보행보조기 비치, 경사로·손잡이 설치 등 편의 시설 구비 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">직원 면담</div><div class="method-sub">편의 시설 위치 및 이용 방법 안내 숙지 여부 확인</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 현장 점검 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div><span>취약환자의 권리보호에 대한 규정이 있다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>직원은 의사소통이 어려운 환자를 위한 지원체계를 알고 있다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>학대·폭력피해자 발생 시 절차를 준수한다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>학대·폭력피해자 발생 시 경영진에게 보고하고 개선활동을 수행한다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>학대 및 폭력 예방활동을 수행한다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>직원은 학대·폭력 대응·예방 교육을 받고 내용을 이해한다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>학대 및 폭력 신고절차에 대해 안내한다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>거동 불편 환자 편의 시설을 구비하고 직원은 이를 알고 있다</span></div>
+  </div>
+</div>
+
+<!-- ════ TAB 2 : 5.3 불만 및 고충 관리 ════ -->
+<div class="content" id="tab-2">
+  <div class="section-title">
+    <div class="icon" style="background:#fed7e2">💬</div>
+    기준 5.3 · 환자의 불만 및 고충을 관리한다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">환자 진료가 이루어지는 장소</span>
+        <span class="tag tag-loc">불만·고충 담당 부서</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">환자 진료 관련 직원</span>
+        <span class="tag tag-who">불만·고충 담당 직원</span>
+        <span class="tag tag-who">경영진</span>
+      </div>
+    </div>
+  </div>
+  <div class="survey-list">
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">환자의 불만 및 고충 관리에 대한 규정이 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">규정·지침서 검토</div>
+            <div class="method-sub">접수 채널, 처리 기한, 결과 통보 방법, 분석·개선 절차 포함 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">환자에게 불만 및 고충 처리절차에 대한 정보를 제공한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">현장 관찰</div><div class="method-sub">불만 접수 안내문 게시, 고충 처리함 설치 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">환자·보호자 면담</div><div class="method-sub">불만 처리 절차 안내 제공 여부 및 인지 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">불만 처리 안내 관련 서식 및 배포 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">불만 및 고충사항을 처리한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">담당 직원·경영진 면담</div><div class="method-sub">접수된 불만 처리 절차 이행 및 환자 피드백 제공 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">불만 처리 기록 확인</div><div class="method-sub">접수·처리 내역, 처리 기한 준수 여부, 결과 통보 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">환자의 불만 및 고충사항을 정기적으로 분석하여 개선활동을 수행한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">경영진·담당자 면담</div><div class="method-sub">분석 주기, 개선 활동 수행 여부 및 결과 공유 방법 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">불만 현황 분석 보고서, 개선 활동 계획 및 결과 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 현장 점검 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div><span>환자의 불만 및 고충 관리에 대한 규정이 있다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>환자에게 불만·고충 처리절차에 대한 정보를 제공한다 (안내문 게시)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>불만 및 고충사항을 처리한다 (처리 기한 준수, 결과 통보)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>불만·고충사항을 정기적으로 분석하여 개선활동을 수행한다</span></div>
+  </div>
+</div>
+
+<!-- ════ TAB 3 : 5.4 의료사회복지체계 ════ -->
+<div class="content" id="tab-3">
+  <div class="section-title">
+    <div class="icon" style="background:#f0fff4">🌱</div>
+    기준 5.4 · 의료사회복지체계를 수립하고 운영한다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">병동</span>
+        <span class="tag tag-loc">의료사회복지 서비스 담당 부서</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">의사</span>
+        <span class="tag tag-who">간호사</span>
+        <span class="tag tag-who">의료사회복지 서비스 담당 직원</span>
+      </div>
+    </div>
+  </div>
+  <div class="survey-list">
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">의료사회복지체계가 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">체계 문서 검토</div>
+            <div class="method-sub">의료사회복지 서비스 대상 기준, 의뢰 절차, 담당 인력 배치 등 체계 문서 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">직원은 의료사회복지 서비스 의뢰 가능 대상 및 의뢰절차를 알고 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">의사·간호사 면담</div><div class="method-sub">의뢰 대상 기준(경제적 어려움, 사회적 고립 등) 및 의뢰 방법 숙지 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">기록 확인</div><div class="method-sub">의료사회복지 의뢰 관련 교육 이수 기록 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">의료사회복지 서비스를 제공한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">담당 부서 현장 관찰</div><div class="method-sub">서비스 제공 환경 및 자원 확보 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">담당 직원 면담</div><div class="method-sub">서비스 제공 현황 및 사례 관리 방법 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">서비스 기록 확인</div><div class="method-sub">의뢰·제공 기록, 사례 관리 내역 확인</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 현장 점검 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div><span>의료사회복지체계가 있다 (대상 기준, 의뢰 절차 포함)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>직원은 의료사회복지 서비스 의뢰 가능 대상 및 의뢰절차를 알고 있다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>의료사회복지 서비스를 제공한다 (의뢰·제공 기록)</span></div>
+  </div>
+</div>
+
+<!-- ════ TAB 4 : 5.5 동의서 ════ -->
+<div class="content" id="tab-4">
+  <div class="section-title">
+    <div class="icon" style="background:#faf5ff">📝</div>
+    기준 5.5 · 환자 또는 보호자에게 동의서를 받는다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">병동</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">의사</span>
+      </div>
+    </div>
+  </div>
+  <div class="survey-list">
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">진료동의서에 대한 규정이 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">규정·지침서 검토</div>
+            <div class="method-sub">동의서 취득 대상(시술·혈액·고위험의약품), 설명 의무자, 서식 기준 포함 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">시술 동의서를 받는다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">시술 동의 과정 관찰</div><div class="method-sub">시술 전 충분한 설명 후 동의 취득 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">의사·환자·보호자 면담</div><div class="method-sub">설명 내용(목적, 위험성, 대안 등) 이해 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">동의서 기록 확인</div><div class="method-sub">시술 동의서 서명 완전성, 설명 일시·의사 서명 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">혈액제제 사용동의서를 받는다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">수혈 동의 과정 관찰</div><div class="method-sub">수혈 전 위험성 및 대안 설명 후 동의 취득 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">의사·환자 면담</div><div class="method-sub">혈액제제 동의 설명 내용 이해 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">동의서 기록 확인</div><div class="method-sub">혈액제제 사용동의서 완전성 확인</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">고위험의약품 사용동의서를 받는다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div><div class="method-text">동의 과정 관찰</div><div class="method-sub">고위험의약품 투여 전 위험성 설명 및 동의 취득 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div><div class="method-text">의사·환자·보호자 면담</div><div class="method-sub">고위험의약품 설명 내용 이해 여부 확인</div></div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div><div class="method-text">동의서 기록 확인</div><div class="method-sub">고위험의약품 사용동의서 완전성 확인</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 현장 점검 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div><span>진료동의서에 대한 규정이 있다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>시술 동의서를 받는다 (설명 후 서명, 의사 서명 포함)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>혈액제제 사용동의서를 받는다</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>고위험의약품 사용동의서를 받는다</span></div>
+  </div>
+</div>
+
+<!-- ════ TAB 5 : 5.6 편의 및 안전시설 ════ -->
+<div class="content" id="tab-5">
+  <div class="section-title">
+    <div class="icon" style="background:#e0f2fe">🏗</div>
+    기준 5.6 · 의료기관은 환자의 권리를 보호하기 위한 시설을 갖추고 운영한다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">전 부서</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">시설 및 환경관리 ST 관련 직원</span>
+      </div>
+    </div>
+  </div>
+  <div class="survey-list">
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">입원실 적정면적 및 병상 수를 준수한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">시설 기준 검토</div>
+            <div class="method-sub">요양병원 법정 기준(1인당 면적, 최대 병상 수 등) 준수 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">환자 편의 및 안전을 위한 시설을 구비한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">시설 현황 확인</div>
+            <div class="method-sub">화장실 안전 손잡이, 미끄럼 방지 바닥재, 비상 호출 장치 구비 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">병원용 엘리베이터를 설치한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">시설 기준 검토</div>
+            <div class="method-sub">침대 이동 가능 크기의 병원용 엘리베이터 설치 여부 확인 (2층 이상 기관)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">휠체어 및 병상 이동 공간을 확보한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">시설 기준 검토</div>
+            <div class="method-sub">복도 폭, 출입구 규격, 병상 간 이동 공간 법정 기준 준수 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 현장 점검 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div><span>입원실 적정면적 및 병상 수를 준수한다 (법정 기준 충족)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>환자 편의 및 안전을 위한 시설을 구비한다 (손잡이, 비상호출, 미끄럼방지)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>병원용 엘리베이터를 설치한다 (침대 이동 가능 규격)</span></div>
+    <div class="checklist-item"><div class="check-box"></div><span>휠체어 및 병상 이동 공간을 확보한다 (복도 폭·출입구 기준)</span></div>
+  </div>
+</div>
+
+<div class="footer">의료기관평가인증원 인증기준 요약 대시보드 · 요양병원 5장 환자권리존중 및 보호</div>
+
+<script>
+function showTab(n) {
+  document.querySelectorAll('.content').forEach(function(c, i) { c.classList.toggle('active', i === n); });
+  document.querySelectorAll('.tab-btn').forEach(function(b, i) { b.classList.toggle('active', i === n); });
+}
+</script>
+</body>
+</html>

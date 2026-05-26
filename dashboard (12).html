@@ -1,0 +1,269 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>인증등급 판정기준</title><style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    background: #f0f4f8;
+    color: #2d3748;
+    font-size: 14px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+    color: white;
+    padding: 28px 32px 24px;
+    text-align: center;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .header p  { font-size: 13px; margin-top: 6px; opacity: 0.85; }
+  .header .badge-row {
+    margin-top: 14px;
+    display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 24px;
+    display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .legend-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-s   { background: #6b46c1; }
+  .dot-p   { background: #2b6cb0; }
+  .dot-loc { background: #276749; }
+  .dot-who { background: #c05621; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex; gap: 0;
+    background: #2d3748;
+    overflow-x: auto;
+    padding: 0 16px;
+  }
+  .tab-btn {
+    flex: 1; min-width: 80px;
+    padding: 12px 8px;
+    background: transparent;
+    color: #a0aec0;
+    border: none; border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: #e2e8f0; }
+  .tab-btn.active {
+    color: #fff;
+    border-bottom-color: #63b3ed;
+    background: rgba(255,255,255,0.05);
+  }
+  .tab-btn .num {
+    display: block;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    margin: 0 auto 4px;
+    font-size: 11px;
+    line-height: 22px;
+    background: rgba(255,255,255,0.15);
+  }
+
+  /* ── Content ── */
+  .content {
+    display: none;
+    padding: 20px 20px 32px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .content.active { display: block; }
+
+  /* ── Section card ── */
+  .section-title {
+    font-size: 17px; font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #bee3f8;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .icon {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  /* ── Info row (장소·대상) ── */
+  .info-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 520px) {
+    .info-row { grid-template-columns: 1fr; }
+  }
+  .info-card {
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .info-card.loc { background: #f0fff4; border: 1px solid #c6f6d5; }
+  .info-card.who { background: #fffaf0; border: 1px solid #fbd38d; }
+  .info-card h3 {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .info-card.loc h3 { color: #276749; }
+  .info-card.who h3 { color: #c05621; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    padding: 3px 10px; border-radius: 12px;
+    font-size: 12px; font-weight: 600;
+  }
+  .tag-loc { background: #c6f6d5; color: #276749; }
+  .tag-who { background: #fbd38d; color: #7b341e; }
+
+  /* ── Survey items ── */
+  .survey-list { display: flex; flex-direction: column; gap: 10px; }
+  .survey-item {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+  }
+  .survey-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+  }
+  .survey-header.type-s { background: #faf5ff; border-bottom: 1px solid #e9d8fd; }
+  .survey-header.type-p { background: #ebf8ff; border-bottom: 1px solid #bee3f8; }
+
+  .type-badge {
+    flex-shrink: 0;
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: white;
+  }
+  .type-badge.s { background: #6b46c1; }
+  .type-badge.p { background: #2b6cb0; }
+
+  .item-title { font-weight: 700; font-size: 13px; }
+
+  .survey-body { padding: 10px 14px; background: #fff; }
+  .method-row {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f7fafc;
+  }
+  .method-row:last-child { border-bottom: none; }
+  .method-icon {
+    flex-shrink: 0;
+    width: 22px; height: 22px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+  .icon-doc   { background: #fef3c7; color: #92400e; }
+  .icon-obs   { background: #dcfce7; color: #166534; }
+  .icon-int   { background: #dbeafe; color: #1e40af; }
+  .icon-rec   { background: #f3e8ff; color: #6b21a8; }
+  .icon-pat   { background: #fce7f3; color: #9d174d; }
+  .method-text { font-size: 12px; line-height: 1.6; color: #4a5568; }
+  .method-sub {
+    font-size: 11px; color: #718096; margin-top: 2px; line-height: 1.5;
+  }
+  .note {
+    margin-top: 4px;
+    font-size: 11px; color: #805ad5;
+    padding: 4px 8px;
+    background: #faf5ff; border-radius: 4px;
+    border-left: 3px solid #9f7aea;
+  }
+
+  /* ── Checklist ── */
+  .checklist-wrap {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 16px;
+  }
+  .checklist-title {
+    font-size: 12px; font-weight: 700;
+    color: #2d3748; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .checklist-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f7fafc;
+    font-size: 12px;
+    color: #4a5568;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .check-box {
+    flex-shrink: 0;
+    width: 16px; height: 16px; border-radius: 3px;
+    border: 2px solid #cbd5e0;
+    margin-top: 1px;
+  }
+
+  /* ── Grade dashboard (인증·평가 등급) ── */
+  .grade-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 20px; }
+  .grade-card { border-radius: 12px; padding: 18px 16px; text-align: center; }
+  .grade-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+  .grade-card p  { font-size: 11px; opacity: .85; }
+  .gc-cert  { background: linear-gradient(135deg,#6b46c1,#805ad5); color:#fff; }
+  .gc-cond  { background: linear-gradient(135deg,#2b6cb0,#3182ce); color:#fff; }
+  .gc-deny  { background: linear-gradient(135deg,#c05621,#dd6b20); color:#fff; }
+  .gc-a     { background: linear-gradient(135deg,#276749,#38a169); color:#fff; }
+  .gc-b     { background: linear-gradient(135deg,#2b6cb0,#3182ce); color:#fff; }
+  .gc-c     { background: linear-gradient(135deg,#c05621,#dd6b20); color:#fff; }
+  .criteria-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .criteria-table th { background:#2d3748; color:#fff; padding:8px 10px; text-align:left; }
+  .criteria-table td { padding:8px 10px; border-bottom:1px solid #e2e8f0; }
+  .criteria-table tr:last-child td { border-bottom:none; }
+  .criteria-table tr:nth-child(even) td { background:#f7fafc; }
+  .process-step { display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid #e2e8f0; }
+  .process-step:last-child { border-bottom:none; }
+  .step-num { flex-shrink:0; width:28px; height:28px; border-radius:50%; background:#2b6cb0; color:#fff;
+              display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; }
+  .step-body h4 { font-size:13px; font-weight:700; color:#1a365d; margin-bottom:3px; }
+  .step-body p  { font-size:11px; color:#4a5568; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 11px;
+    color: #a0aec0;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+    margin-top: 20px;
+  }
+</style></head><body><div class="header"><h1>🏅 인증등급 판정기준</h1><p>의료기관 인증 등급 판정기준 안내</p><div class="badge-row"><span class="badge">인증등급 판정기준</span></div></div><div class="legend">
+  <div class="legend-item"><div class="legend-dot dot-s"></div><b>S (Structure)</b> — 규정·문서 검토</div>
+  <div class="legend-item"><div class="legend-dot dot-p"></div><b>P (Process)</b> — 관찰·면담·기록 확인</div>
+  <div class="legend-item"><div class="legend-dot dot-loc"></div>조사 장소</div>
+  <div class="legend-item"><div class="legend-dot dot-who"></div>조사 대상 직원</div>
+</div><b>S (Structure)</b> — 규정·문서 검토</div>
+  <div class="legend-item"><div class="legend-dot dot-p"></div><b>P (Process)</b> — 관찰·면담·기록 확인</div>
+  <div class="legend-item"><div class="legend-dot dot-loc"></div>조사 장소</div>
+  <div class="legend-item"><div class="legend-dot dot-who"></div>조사 대상 직원</div>
+</div><b>S (Structure)</b> — 규정·문서 검토</div>
+  <div class="legend-item"><div class="legend-dot dot-p"></div><b>P (Process)</b> — 관찰·면담·기록 확인</div>
+  <div class="legend-item"><div class="legend-dot dot-loc"></div>조사 장소</div>
+  <div class="legend-item"><div class="legend-dot dot-who"></div>조사 대상 직원</div>
+</div>인증/A등급</div><div class="legend-item"><div class="legend-dot dot-p"></div>조건부/B등급</div><div class="legend-item"><div class="legend-dot dot-loc"></div>불인증/C등급</div></div><div class="grade-wrap"><div class="grade-card" style="border-color:#2b6cb0;background:#ebf8ff"><div class="grade-tag" style="background:#2b6cb0;color:#fff">🏅 인증</div><div style="font-size:15px;font-weight:800;color:#1a365d;margin-bottom:6px">인증</div><div class="grade-desc">인증기준을 충족하여 인증을 부여받은 의료기관입니다.</div><ul class="grade-ul"><li>인증기준 전 영역 충족</li><li>필수기준(MT) 전항목 충족</li><li>인증 유효기간: 4년</li></ul></div><div class="grade-card" style="border-color:#c05621;background:#fffaf0"><div class="grade-tag" style="background:#c05621;color:#fff">⚡ 조건부 인증</div><div style="font-size:15px;font-weight:800;color:#1a365d;margin-bottom:6px">조건부 인증</div><div class="grade-desc">일부 인증기준 미충족 시 조건부 인증이 부여됩니다.</div><ul class="grade-ul"><li>인증기준 일부 미충족</li><li>유효기간: 1년</li><li>개선 후 재조사 신청 가능</li></ul></div><div class="grade-card" style="border-color:#e53e3e;background:#fff5f5"><div class="grade-tag" style="background:#e53e3e;color:#fff">❌ 불인증</div><div style="font-size:15px;font-weight:800;color:#1a365d;margin-bottom:6px">불인증</div><div class="grade-desc">인증기준을 충족하지 못하여 인증이 부여되지 않습니다.</div><ul class="grade-ul"><li>필수기준(MT) 미충족</li><li>핵심 기준 다수 미충족</li><li>재신청: 불인증 후 6개월 이후</li></ul></div></div><div class="footer">의료기관평가인증원 인증기준 요약 대시보드</div></body></html>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1장 환자안전보장활동 — 조사방법 가이드</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    background: #f0f4f8;
+    color: #2d3748;
+    font-size: 14px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+    color: white;
+    padding: 28px 32px 24px;
+    text-align: center;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  .header p  { font-size: 13px; margin-top: 6px; opacity: 0.85; }
+  .header .badge-row {
+    margin-top: 14px;
+    display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;
+  }
+  .badge {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 24px;
+    display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .legend-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-s   { background: #6b46c1; }
+  .dot-p   { background: #2b6cb0; }
+  .dot-loc { background: #276749; }
+  .dot-who { background: #c05621; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex; gap: 0;
+    background: #2d3748;
+    overflow-x: auto;
+    padding: 0 16px;
+  }
+  .tab-btn {
+    flex: 1; min-width: 80px;
+    padding: 12px 8px;
+    background: transparent;
+    color: #a0aec0;
+    border: none; border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: #e2e8f0; }
+  .tab-btn.active {
+    color: #fff;
+    border-bottom-color: #63b3ed;
+    background: rgba(255,255,255,0.05);
+  }
+  .tab-btn .num {
+    display: block;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    margin: 0 auto 4px;
+    font-size: 11px;
+    line-height: 22px;
+    background: rgba(255,255,255,0.15);
+  }
+
+  /* ── Content ── */
+  .content {
+    display: none;
+    padding: 20px 20px 32px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .content.active { display: block; }
+
+  /* ── Section card ── */
+  .section-title {
+    font-size: 17px; font-weight: 700;
+    color: #1a365d;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #bee3f8;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .icon {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  /* ── Info row (장소·대상) ── */
+  .info-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 520px) {
+    .info-row { grid-template-columns: 1fr; }
+  }
+  .info-card {
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .info-card.loc { background: #f0fff4; border: 1px solid #c6f6d5; }
+  .info-card.who { background: #fffaf0; border: 1px solid #fbd38d; }
+  .info-card h3 {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .info-card.loc h3 { color: #276749; }
+  .info-card.who h3 { color: #c05621; }
+  .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    padding: 3px 10px; border-radius: 12px;
+    font-size: 12px; font-weight: 600;
+  }
+  .tag-loc { background: #c6f6d5; color: #276749; }
+  .tag-who { background: #fbd38d; color: #7b341e; }
+
+  /* ── Survey items ── */
+  .survey-list { display: flex; flex-direction: column; gap: 10px; }
+  .survey-item {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+  }
+  .survey-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+  }
+  .survey-header.type-s { background: #faf5ff; border-bottom: 1px solid #e9d8fd; }
+  .survey-header.type-p { background: #ebf8ff; border-bottom: 1px solid #bee3f8; }
+
+  .type-badge {
+    flex-shrink: 0;
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: white;
+  }
+  .type-badge.s { background: #6b46c1; }
+  .type-badge.p { background: #2b6cb0; }
+
+  .item-title { font-weight: 700; font-size: 13px; }
+
+  .survey-body { padding: 10px 14px; background: #fff; }
+  .method-row {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f7fafc;
+  }
+  .method-row:last-child { border-bottom: none; }
+  .method-icon {
+    flex-shrink: 0;
+    width: 22px; height: 22px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+  .icon-doc   { background: #fef3c7; color: #92400e; }
+  .icon-obs   { background: #dcfce7; color: #166534; }
+  .icon-int   { background: #dbeafe; color: #1e40af; }
+  .icon-rec   { background: #f3e8ff; color: #6b21a8; }
+  .icon-pat   { background: #fce7f3; color: #9d174d; }
+  .method-text { font-size: 12px; line-height: 1.6; color: #4a5568; }
+  .method-sub {
+    font-size: 11px; color: #718096; margin-top: 2px; line-height: 1.5;
+  }
+  .note {
+    margin-top: 4px;
+    font-size: 11px; color: #805ad5;
+    padding: 4px 8px;
+    background: #faf5ff; border-radius: 4px;
+    border-left: 3px solid #9f7aea;
+  }
+
+  /* ── Checklist ── */
+  .checklist-wrap {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 16px;
+  }
+  .checklist-title {
+    font-size: 12px; font-weight: 700;
+    color: #2d3748; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .checklist-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f7fafc;
+    font-size: 12px;
+    color: #4a5568;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .check-box {
+    flex-shrink: 0;
+    width: 16px; height: 16px; border-radius: 3px;
+    border: 2px solid #cbd5e0;
+    margin-top: 1px;
+  }
+
+  /* ── Grade dashboard (인증·평가 등급) ── */
+  .grade-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 20px; }
+  .grade-card { border-radius: 12px; padding: 18px 16px; text-align: center; }
+  .grade-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+  .grade-card p  { font-size: 11px; opacity: .85; }
+  .gc-cert  { background: linear-gradient(135deg,#6b46c1,#805ad5); color:#fff; }
+  .gc-cond  { background: linear-gradient(135deg,#2b6cb0,#3182ce); color:#fff; }
+  .gc-deny  { background: linear-gradient(135deg,#c05621,#dd6b20); color:#fff; }
+  .gc-a     { background: linear-gradient(135deg,#276749,#38a169); color:#fff; }
+  .gc-b     { background: linear-gradient(135deg,#2b6cb0,#3182ce); color:#fff; }
+  .gc-c     { background: linear-gradient(135deg,#c05621,#dd6b20); color:#fff; }
+  .criteria-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .criteria-table th { background:#2d3748; color:#fff; padding:8px 10px; text-align:left; }
+  .criteria-table td { padding:8px 10px; border-bottom:1px solid #e2e8f0; }
+  .criteria-table tr:last-child td { border-bottom:none; }
+  .criteria-table tr:nth-child(even) td { background:#f7fafc; }
+  .process-step { display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid #e2e8f0; }
+  .process-step:last-child { border-bottom:none; }
+  .step-num { flex-shrink:0; width:28px; height:28px; border-radius:50%; background:#2b6cb0; color:#fff;
+              display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; }
+  .step-body h4 { font-size:13px; font-weight:700; color:#1a365d; margin-bottom:3px; }
+  .step-body p  { font-size:11px; color:#4a5568; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 11px;
+    color: #a0aec0;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🏥 의료기관평가인증 · 1장 환자안전보장활동 조사방법 가이드</h1>
+  <p>요양병원 · 인증(요양)</p>
+  <div class="badge-row">
+    <span class="badge">3개 기준</span>
+    <span class="badge">S:3 P:11</span>
+    <span class="badge">요양병원 공통</span>
+  </div>
+</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot dot-s"></div><b>S (Structure)</b> — 규정·문서 검토</div>
+  <div class="legend-item"><div class="legend-dot dot-p"></div><b>P (Process)</b> — 관찰·면담·기록 확인</div>
+  <div class="legend-item"><div class="legend-dot dot-loc"></div>조사 장소</div>
+  <div class="legend-item"><div class="legend-dot dot-who"></div>조사 대상 직원</div>
+</div>
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab(0)"><span class="num">1.1</span>환자확인·의사소통</button>
+  <button class="tab-btn" onclick="showTab(1)"><span class="num">1.2</span>낙상예방</button>
+  <button class="tab-btn" onclick="showTab(2)"><span class="num">1.3</span>손위생</button>
+</div>
+
+<!-- ════════════════════════════════════════
+     기준 1.1 환자를 정확하게 확인하고 의사소통한다
+     S:1 / P:5
+     ════════════════════════════════════════ -->
+<div class="content active" id="tab-0">
+  <div class="section-title">
+    <div class="icon" style="background:#fef3c7">🪪</div>
+    기준 1.1 · 환자를 정확하게 확인하고 의사소통한다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">병동</span>
+        <span class="tag tag-loc">의약품 투여 장소</span>
+        <span class="tag tag-loc">검사실</span>
+        <span class="tag tag-loc">외래 진료실</span>
+        <span class="tag tag-loc">치료실</span>
+        <span class="tag tag-loc">약제부서</span>
+        <span class="tag tag-loc">회의실</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">의사</span>
+        <span class="tag tag-who">간호사</span>
+        <span class="tag tag-who">약사</span>
+        <span class="tag tag-who">환자 확인 수행 직원</span>
+        <span class="tag tag-who">의약품관리 관련 직원</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="survey-list">
+
+    <!-- S -->
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">정확한 환자 확인 및 의사소통에 대한 규정이 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">규정 검토</div>
+            <div class="method-sub">환자 확인이 필요한 시점·수행자, 최소 두 가지 이상 지표 사용, 개방형 질문 포함 여부 / 구두처방 절차·필요시처방 목록 관리·혼동하기 쉬운 처방 유형 및 대처방안 포함 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P1 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">환자를 정확하게 확인한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">의약품 투여·검사·처치 사례 직접 관찰</div>
+            <div class="method-sub">두 가지 이상 지표(성명+생년월일 등)를 사용한 환자 확인 절차 수행 여부 확인 / 병실 호수·위치를 지표로 사용하지 않음</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">환자 확인 수행 직원 면담</div>
+            <div class="method-sub">의약품 투여·검사·처치 전 환자 확인 절차 및 인지 여부 확인 / 의사소통 어려운 환자(인지장애 등)에 대한 확인 방법 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">구두처방을 정확하게 수행한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">의사·간호사 관련 자료 확인</div>
+            <div class="method-sub">구두처방 상황 및 절차 확인(받아쓰기 → 되읽기 → 처방 확인) / 지정 시간 이내 처방 이행 여부 / 구두처방 사례 기록 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">필요시처방(p.r.n)을 관리한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">의약품관리 관련 직원 자료 확인</div>
+            <div class="method-sub">필요시처방 가능·불가능 처방 선정 및 관리 자료 확인 / 목록 점검 주기 및 최신화 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">필요시처방(p.r.n)을 안전하게 수행한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">의사·간호사 관련 자료 확인</div>
+            <div class="method-sub">필요시처방 상황 및 내용 확인 / 필요시처방 사례 기록(의사 처방 → 간호사 수행) 확인 / 의무기록 내 처방 이행 기록 완비 여부</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P5 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">혼동하기 쉬운 부정확한 처방 시 대처방안을 알고 수행한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">간호사·약사 면담</div>
+            <div class="method-sub">혼동하기 쉬운 부정확한 처방 시 대처방안 확인(수기처방 글씨체 문제, 전자처방 명확성, 유사코드·유사이름 의약품 확인)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /survey-list -->
+
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 준비 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div>정확한 환자 확인·의사소통 규정 수립 (최소 두 가지 이상 지표, 구두처방·필요시처방·혼동처방 대처방안 포함)</div>
+    <div class="checklist-item"><div class="check-box"></div>의약품 투여·검사·처치 전 환자 확인 기록 완비 / 병실 호수를 확인 지표로 사용하지 않음</div>
+    <div class="checklist-item"><div class="check-box"></div>구두처방 사례 기록 및 지정 시간 이내 처방 이행 확인</div>
+    <div class="checklist-item"><div class="check-box"></div>필요시처방 가능·불가능 목록 최신화 및 관리 자료 완비</div>
+    <div class="checklist-item"><div class="check-box"></div>혼동 처방 유형별 대처방안 직원 교육 자료</div>
+    <div class="checklist-item"><div class="check-box"></div>의사소통 어려운 환자(인지장애·언어장애 등)에 대한 환자 확인 방법 규정 반영</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     기준 1.2 낙상 예방활동을 수행한다
+     S:1 / P:4
+     ════════════════════════════════════════ -->
+<div class="content" id="tab-1">
+  <div class="section-title">
+    <div class="icon" style="background:#f0fff4">🛡️</div>
+    기준 1.2 · 낙상 예방활동을 수행한다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">병동</span>
+        <span class="tag tag-loc">외래 진료실</span>
+        <span class="tag tag-loc">검사실</span>
+        <span class="tag tag-loc">치료실</span>
+        <span class="tag tag-loc">이송 경로</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">간호사</span>
+        <span class="tag tag-who">의사</span>
+        <span class="tag tag-who">의료기사</span>
+        <span class="tag tag-who">이송 담당 직원</span>
+        <span class="tag tag-who">환자·보호자</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="survey-list">
+
+    <!-- S -->
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">낙상 예방에 대한 규정이 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">규정 검토</div>
+            <div class="method-sub">낙상 위험 평가 대상·평가도구·평가시기, 고위험환자 예방활동, 낙상 발생 가능 장소별 예방활동 포함 여부 확인 / 요양병원 입원환자(노인·인지장애 환자 등) 특성을 반영한 고위험군 기준 명시 여부</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P1 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">낙상 위험 평가도구를 이용하여 환자 입원 시 초기평가를 수행한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">간호사·관련 자료 확인</div>
+            <div class="method-sub">낙상 위험 평가 대상·평가도구·평가시기 확인 / 신뢰도·타당도가 입증된 도구 사용 여부 / 낙상 위험 분류 기준 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">입원환자 낙상 초기평가 의무기록 확인</div>
+            <div class="method-sub">입원 시 초기평가 기록 완비 여부 / 낙상 고위험 분류 환자 식별 기록 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">낙상 위험 평가결과에 따라 고위험환자에 대한 낙상 예방활동을 수행한다 <span style="font-size:11px;color:#c05621;font-weight:700;">[필수]</span></span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">낙상 예방 환경·시설 관리 상태 관찰</div>
+            <div class="method-sub">침대 난간 사용, 미끄럼 방지 바닥, 야간 조명, 호출 벨 접근성 등 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">간호사·의사·의료기사·이송 담당 직원 면담</div>
+            <div class="method-sub">낙상 고위험환자 정보 공유 방법 확인 / 필요시 의학적·약학적 중재 수행 여부</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">낙상 고위험환자 직접 관찰 (간호사 수행 활동 확인)</div>
+            <div class="method-sub">수행한 예방활동 내용(침대 난간 올림, 미끄럼 방지 양말 착용, 보조 기구 제공 등) 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-pat">🙋</div>
+          <div>
+            <div class="method-text">환자·보호자 확인</div>
+            <div class="method-sub">낙상 예방 교육을 받았는지, 예방활동 내용을 인지하고 있는지 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">관련 자료 확인</div>
+            <div class="method-sub">낙상 고위험환자 예방활동 수행 기록 / 낙상 예방 교육자료(환자·보호자·직원용) 비치 여부</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P3 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">낙상 위험 평가도구를 이용하여 재평가를 수행한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">간호사·관련 자료 확인</div>
+            <div class="method-sub">낙상 위험도 재평가 시점·절차 확인 (환자 상태변화, 낙상 발생 후, 정기 재평가 등)</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">낙상 재평가 의무기록 확인</div>
+            <div class="method-sub">상태변화 시 재평가 이행 여부 / 재평가 결과에 따른 예방활동 변경 기록</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P4 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">낙상 발생 가능한 장소 또는 부서에서 낙상 예방활동을 수행한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">직원 낙상 예방활동 직접 관찰</div>
+            <div class="method-sub">간호사·의사·의료기사·이송 관련 직원의 낙상 예방활동 내용 확인 (이동 시, 검사·치료 중 등)</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">의료기사·이송 담당 직원 면담</div>
+            <div class="method-sub">이송 경로 및 검사·치료실에서의 낙상 예방 절차 인지 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /survey-list -->
+
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 준비 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div>신뢰도·타당도가 입증된 낙상 위험 평가도구 사용 (요양병원 노인 환자 특성 반영)</div>
+    <div class="checklist-item"><div class="check-box"></div>입원 시 초기평가 및 상태변화 시 재평가 기록 완비</div>
+    <div class="checklist-item"><div class="check-box"></div>낙상 고위험환자 정보 공유 방법 및 예방활동 수행 기록</div>
+    <div class="checklist-item"><div class="check-box"></div>낙상 발생 가능 모든 장소(이송 경로, 검사실, 치료실 포함) 예방활동 수행</div>
+    <div class="checklist-item"><div class="check-box"></div>환자·보호자 대상 낙상 예방 교육 실시 및 기록</div>
+    <div class="checklist-item"><div class="check-box"></div>침대 난간, 미끄럼 방지 시설, 야간 조명 등 낙상 예방 환경 점검</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     기준 1.3 손위생을 철저히 수행한다
+     S:1 / P:2
+     ════════════════════════════════════════ -->
+<div class="content" id="tab-2">
+  <div class="section-title">
+    <div class="icon" style="background:#e6fffa">🧴</div>
+    기준 1.3 · 손위생을 철저히 수행한다
+  </div>
+  <div class="info-row">
+    <div class="info-card loc">
+      <h3>📍 조사 장소</h3>
+      <div class="tag-list">
+        <span class="tag tag-loc">환자진료가 이루어지는 모든 장소</span>
+        <span class="tag tag-loc">회의실</span>
+      </div>
+    </div>
+    <div class="info-card who">
+      <h3>👥 조사 대상</h3>
+      <div class="tag-list">
+        <span class="tag tag-who">환자 진료 관련 직원</span>
+        <span class="tag tag-who">감염관리 관련 직원</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="survey-list">
+
+    <!-- S -->
+    <div class="survey-item">
+      <div class="survey-header type-s">
+        <div class="type-badge s">S</div>
+        <span class="item-title">손위생 수행에 대한 규정이 있다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-doc">📋</div>
+          <div>
+            <div class="method-text">규정 검토</div>
+            <div class="method-sub">손위생 수행 시점 5가지(환자 접촉 전·청결처치 전·체액 노출 후·환자 접촉 후·주변 기구 접촉 후), 올바른 방법, 소독제 종류 포함 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P1 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">손위생을 올바르게 수행한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">직원 손위생 수행 관찰</div>
+            <div class="method-sub">손위생을 수행해야 하는 시점에서 직원의 손위생 수행 여부 확인 / 올바른 방법(비빔 시간, 전체 부위 등)으로 수행하는지 확인</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-int">💬</div>
+          <div>
+            <div class="method-text">환자 진료 관련 직원 면담</div>
+            <div class="method-sub">손위생 5가지 시점 인지 여부 / 올바른 손위생 방법 숙지 여부 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P2 -->
+    <div class="survey-item">
+      <div class="survey-header type-p">
+        <div class="type-badge p">P</div>
+        <span class="item-title">손위생 수행을 돕기 위한 자원을 지원한다</span>
+      </div>
+      <div class="survey-body">
+        <div class="method-row">
+          <div class="method-icon icon-obs">👁</div>
+          <div>
+            <div class="method-text">손위생 지원 자원 관찰</div>
+            <div class="method-sub">손소독제 구비 여부, 접근 용이한 세면대 설치, 환자·보호자용 손위생 수행 안내자료 비치 여부</div>
+          </div>
+        </div>
+        <div class="method-row">
+          <div class="method-icon icon-rec">📁</div>
+          <div>
+            <div class="method-text">감염관리 관련 직원 자료 확인</div>
+            <div class="method-sub">손위생 수행을 돕기 위한 자원 지원 자료(소독제 구매·배치 기록, 직원 교육자료 등) 확인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /survey-list -->
+
+  <div class="checklist-wrap">
+    <div class="checklist-title">✅ 준비 체크리스트</div>
+    <div class="checklist-item"><div class="check-box"></div>손위생 수행 시점 5가지 명시 규정 수립</div>
+    <div class="checklist-item"><div class="check-box"></div>올바른 손씻기·손소독 방법 규정 및 교육자료</div>
+    <div class="checklist-item"><div class="check-box"></div>환자 진료 장소 전체 손소독제 구비 및 세면대 접근성 확인</div>
+    <div class="checklist-item"><div class="check-box"></div>환자·보호자용 손위생 안내자료 비치</div>
+    <div class="checklist-item"><div class="check-box"></div>직원 손위생 교육 실시 및 기록 완비</div>
+  </div>
+</div>
+
+<div class="footer">의료기관평가인증원 인증기준 요약 대시보드</div>
+<script>
+function showTab(n) {
+  document.querySelectorAll('.content').forEach(function(c, i) { c.classList.toggle('active', i === n); });
+  document.querySelectorAll('.tab-btn').forEach(function(b, i) { b.classList.toggle('active', i === n); });
+}
+</script>
+</body>
+</html>
