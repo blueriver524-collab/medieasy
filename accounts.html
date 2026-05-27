@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>계정 관리 — 메디이지컨설팅</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap');
+    :root {
+      --primary: #BE38B0;
+      --primary-dark: #8C1A84;
+      --primary-light: #F8EDFC;
+      --grad: linear-gradient(135deg,#BE38B0,#3E54CC);
+      --accent: #00C851;
+      --accent-light: #E8FFF0;
+      --purple: #3E54CC;
+      --purple-light: #EEF1FF;
+      --text: #191F28;
+      --text-muted: #6B7684;
+      --border: #E5E8EB;
+      --bg: #F7F8FA;
+      --white: #FFFFFF;
+      --sidebar-w: 248px;
+      --danger: #FF3B30;
+      --danger-light: #FFF3F2;
+      --warning: #FF6B00;
+      --warning-light: #FFF3E8;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Noto Sans KR',-apple-system,'Apple SD Gothic Neo',sans-serif;
+      background:var(--bg);color:var(--text);line-height:1.6;
+      display:flex;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+    /* ── SIDEBAR ── */
+    .sidebar{width:var(--sidebar-w);min-height:100vh;background:#1C1240;
+      position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:200;
+      border-right:1px solid rgba(255,255,255,.06)}
+    .sidebar::before{content:'';position:absolute;width:300px;height:300px;border-radius:50%;
+      background:radial-gradient(circle,rgba(190,56,176,.12),transparent 70%);
+      top:-100px;left:-80px;pointer-events:none}
+    .sidebar-logo{padding:22px 20px 18px;position:relative;z-index:1;
+      border-bottom:1px solid rgba(255,255,255,.06)}
+    .sidebar-logo a{text-decoration:none;display:flex;align-items:center}
+    .sidebar-logo img{height:28px;display:block;filter:brightness(0) invert(1);opacity:.85}
+    .sidebar-menu{flex:1;padding:20px 12px;overflow-y:auto;position:relative;z-index:1}
+    .menu-section{margin-bottom:28px}
+    .menu-section-label{font-size:.68rem;font-weight:800;color:rgba(255,255,255,.25);
+      letter-spacing:2px;text-transform:uppercase;padding:0 10px;margin-bottom:6px}
+    .menu-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
+      color:rgba(255,255,255,.5);font-size:.87rem;font-weight:500;line-height:1.2;
+      cursor:pointer;transition:all .15s;margin-bottom:2px;
+      text-decoration:none;border:none;background:none;width:100%;text-align:left}
+    .menu-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+    .menu-item.active{background:linear-gradient(135deg,rgba(190,56,176,.28),rgba(62,84,204,.18));
+      color:white;font-weight:700;border:1px solid rgba(190,56,176,.35)}
+    .menu-item svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;
+      stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+    .menu-item .icon{font-size:1rem;width:20px;text-align:center}
+    .sidebar-footer{padding:14px 12px;border-top:1px solid rgba(255,255,255,.06);position:relative;z-index:1}
+    .user-info{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
+      background:rgba(255,255,255,.05);margin-bottom:8px;border:1px solid rgba(255,255,255,.06)}
+    .user-avatar{width:32px;height:32px;border-radius:50%;background:var(--grad);
+      display:flex;align-items:center;justify-content:center;font-size:.85rem;color:white;font-weight:800}
+    .user-name{font-size:.85rem;font-weight:700;color:white}
+    .user-role{font-size:.72rem;color:rgba(255,255,255,.4)}
+    .btn-logout{width:100%;padding:9px 12px;border-radius:10px;background:none;
+      border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.45);font-size:.82rem;
+      font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;
+      justify-content:center;gap:6px;font-family:inherit}
+    .btn-logout:hover{background:rgba(255,59,48,.1);color:#ff6b6b;border-color:rgba(255,59,48,.3)}
+
+    /* ── MAIN ── */
+    .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column}
+    .topbar{background:var(--white);height:64px;display:flex;align-items:center;
+      padding:0 32px;justify-content:space-between;
+      border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;
+      box-shadow:0 1px 0 var(--border)}
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .topbar-title{font-size:1rem;font-weight:800;color:var(--text);letter-spacing:-.3px}
+    .topbar-title span{color:var(--text-muted);font-weight:400;font-size:.88rem;margin-left:8px}
+    .topbar-right{display:flex;align-items:center;gap:10px}
+    .content{padding:28px 32px;flex:1}
+
+    /* ── SECTION HEADER ── */
+    .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .section-title{display:flex;align-items:center;gap:10px}
+    .section-title h2{font-size:1.05rem;font-weight:800;letter-spacing:-.3px}
+    .section-title .badge{padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:800}
+    .badge-admin{background:var(--primary-light);color:var(--primary)}
+    .badge-hosp{background:var(--accent-light);color:#00A843}
+
+    /* ── CARD ── */
+    .card{background:var(--white);border-radius:16px;border:1px solid var(--border);
+      overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);margin-bottom:28px}
+    .card-header{padding:18px 22px;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;background:var(--white)}
+
+    /* ── TABLE ── */
+    table{width:100%;border-collapse:collapse}
+    th{background:var(--bg);padding:10px 20px;font-size:.72rem;font-weight:800;
+      color:var(--text-muted);text-align:left;border-bottom:1px solid var(--border);
+      letter-spacing:.3px;text-transform:uppercase}
+    td{padding:14px 20px;font-size:.87rem;border-bottom:1px solid var(--border);vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:var(--bg)}
+    .td-id{font-family:monospace;font-weight:700;color:var(--primary);font-size:.9rem}
+    .td-id.hosp-id{color:#00A843}
+
+    /* ── BADGES ── */
+    .role-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+      border-radius:100px;font-size:.72rem;font-weight:800}
+    .role-admin{background:var(--primary-light);color:var(--primary)}
+    .role-consultant{background:var(--purple-light);color:var(--purple)}
+    .role-hospital{background:var(--accent-light);color:#00A843}
+    .role-default{background:#F5F5F5;color:#666;font-size:.68rem;padding:2px 8px;border-radius:100px;margin-left:6px}
+
+    /* ── PROGRESS BAR (in table) ── */
+    .prog-cell{min-width:120px}
+    .prog-bar-wrap{background:var(--border);border-radius:100px;height:6px;margin-top:4px}
+    .prog-bar-fill{height:6px;border-radius:100px;background:var(--grad)}
+    .prog-label{font-size:.78rem;color:var(--text-muted)}
+
+    /* ── BUTTONS ── */
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;
+      font-size:.82rem;font-weight:700;cursor:pointer;border:none;font-family:inherit;
+      transition:all .15s;text-decoration:none}
+    .btn-primary{background:var(--grad);color:white}
+    .btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+    .btn-outline{background:none;border:1.5px solid var(--border);color:var(--text-muted)}
+    .btn-outline:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+    .btn-green{background:linear-gradient(135deg,#00C851,#00A843);color:white}
+    .btn-green:hover{opacity:.88;transform:translateY(-1px)}
+    .btn-sm{padding:5px 11px;font-size:.75rem;border-radius:7px}
+    .btn-danger-sm{background:var(--danger-light);color:var(--danger);border:none;
+      padding:5px 11px;font-size:.75rem;border-radius:7px;cursor:pointer;
+      font-family:inherit;font-weight:700;transition:all .15s}
+    .btn-danger-sm:hover{background:var(--danger);color:white}
+    .btn-edit-sm{background:var(--primary-light);color:var(--primary);border:none;
+      padding:5px 11px;font-size:.75rem;border-radius:7px;cursor:pointer;
+      font-family:inherit;font-weight:700;transition:all .15s}
+    .btn-edit-sm:hover{background:var(--primary);color:white}
+    .btn-icon{display:inline-flex;align-items:center;justify-content:center;
+      width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;transition:all .15s}
+    .action-group{display:flex;align-items:center;gap:6px}
+
+    /* ── EMPTY STATE ── */
+    .empty-state{padding:48px 20px;text-align:center;color:var(--text-muted)}
+    .empty-icon{font-size:2.5rem;margin-bottom:12px}
+    .empty-state p{font-size:.88rem}
+
+    /* ── MODAL OVERLAY ── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;
+      display:none;align-items:center;justify-content:center;
+      backdrop-filter:blur(4px);padding:20px}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--white);border-radius:20px;width:100%;max-width:480px;
+      box-shadow:0 24px 64px rgba(0,0,0,.18);animation:modalIn .2s ease}
+    @keyframes modalIn{from{opacity:0;transform:translateY(-12px) scale(.97)}to{opacity:1;transform:none}}
+    .modal-header{padding:22px 24px 18px;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between}
+    .modal-title{font-size:1.05rem;font-weight:800;letter-spacing:-.3px}
+    .modal-close{width:32px;height:32px;border-radius:8px;border:none;background:var(--bg);
+      cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;
+      color:var(--text-muted);transition:all .15s}
+    .modal-close:hover{background:var(--danger-light);color:var(--danger)}
+    .modal-body{padding:22px 24px}
+    .modal-footer{padding:16px 24px;border-top:1px solid var(--border);
+      display:flex;align-items:center;justify-content:flex-end;gap:10px}
+
+    /* ── FORM ── */
+    .fg{margin-bottom:16px}
+    .fg label{display:block;font-size:.78rem;font-weight:800;color:#333D4B;
+      margin-bottom:7px;letter-spacing:.2px}
+    .fg label .req{color:var(--primary);margin-left:2px}
+    .fg input,.fg select,.fg textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);
+      border-radius:11px;font-size:.9rem;outline:none;background:var(--white);
+      font-family:inherit;color:var(--text);transition:all .15s}
+    .fg input:focus,.fg select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(190,56,176,.1)}
+    .fg input.green-focus:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,168,67,.1)}
+    .fg-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .fg-hint{font-size:.75rem;color:var(--text-muted);margin-top:5px}
+    .pw-wrap{position:relative}
+    .pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+      background:none;border:none;cursor:pointer;color:var(--text-muted);
+      display:flex;align-items:center;font-size:1rem}
+
+    /* ── TOAST ── */
+    .toast-container{position:fixed;bottom:28px;right:28px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+    .toast{display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;
+      background:var(--text);color:white;font-size:.85rem;font-weight:600;
+      box-shadow:0 8px 24px rgba(0,0,0,.2);animation:toastIn .25s ease;min-width:220px}
+    .toast.success{background:#00A843}
+    .toast.error{background:var(--danger)}
+    @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+    @keyframes toastOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(20px)}}
+
+    /* ── CONFIRM MODAL ── */
+    .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;
+      display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);padding:20px}
+    .confirm-overlay.open{display:flex}
+    .confirm-box{background:var(--white);border-radius:18px;width:100%;max-width:360px;
+      padding:28px 24px;box-shadow:0 24px 64px rgba(0,0,0,.18);text-align:center;
+      animation:modalIn .2s ease}
+    .confirm-icon{font-size:2.4rem;margin-bottom:12px}
+    .confirm-box h3{font-size:1.05rem;font-weight:800;margin-bottom:8px}
+    .confirm-box p{font-size:.87rem;color:var(--text-muted);line-height:1.6;margin-bottom:22px}
+    .confirm-btns{display:flex;gap:10px;justify-content:center}
+
+    /* ── STAT PILLS ── */
+    .stat-pills{display:flex;gap:12px;margin-bottom:24px}
+    .stat-pill{background:var(--white);border:1px solid var(--border);border-radius:12px;
+      padding:14px 20px;display:flex;align-items:center;gap:12px}
+    .stat-pill-num{font-size:1.6rem;font-weight:900;line-height:1}
+    .stat-pill-label{font-size:.75rem;color:var(--text-muted);margin-top:2px}
+    .pill-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .pill-dot.admin{background:var(--primary)}
+    .pill-dot.hosp{background:var(--accent)}
+
+    /* ── PW DISPLAY ── */
+    .pw-dots{letter-spacing:2px;color:var(--text-muted)}
+
+    /* scrollbar */
+    ::-webkit-scrollbar{width:5px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:10px}
+
+    /* ── 모바일 햄버거 버튼 ── */
+    .mob-menu-btn{display:none;align-items:center;justify-content:center;
+      width:38px;height:38px;border-radius:10px;background:var(--primary-light);
+      border:none;font-size:1.2rem;cursor:pointer;margin-right:10px;flex-shrink:0}
+    /* ── 모바일 오버레이 ── */
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+      z-index:199;opacity:0;pointer-events:none;transition:opacity .25s}
+    .sidebar-overlay.show{opacity:1;pointer-events:auto}
+
+    @media(max-width:900px){
+      .sidebar{transform:translateX(-100%);transition:transform .25s ease}
+      .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.25)}
+      .sidebar-overlay{display:block}
+      .main{margin-left:0}
+      .topbar{padding:0 16px}
+      .content{padding:20px}
+    }
+
+    @media(max-width:600px){
+      .mob-menu-btn{display:flex !important}
+
+      /* 탑바 */
+      .topbar{padding:0 12px;height:54px}
+      .topbar-title{font-size:.88rem}
+      .topbar-date{font-size:.72rem}
+
+      /* 콘텐츠 */
+      .content{padding:12px}
+
+      /* 테이블 가로 스크롤 */
+      .table-wrap, .card{overflow-x:auto;-webkit-overflow-scrolling:touch}
+      table{min-width:500px}
+      th,td{padding:9px 10px;font-size:.76rem;white-space:nowrap}
+
+      /* 모달 풀스크린 */
+      .modal-box{width:100% !important;max-width:100% !important;
+        border-radius:18px 18px 0 0 !important;margin:0 !important;
+        position:fixed;bottom:0;left:0;right:0;max-height:90vh;overflow-y:auto}
+      .modal-bg{align-items:flex-end !important;padding:0 !important}
+      .modal-foot{flex-direction:column;gap:8px}
+      .modal-foot button{width:100%;padding:13px;font-size:.92rem}
+
+      /* 폼 */
+      .form-row{flex-direction:column;gap:8px}
+      .form-group input,.form-group select{font-size:.88rem;padding:10px 12px}
+
+      /* 탭/필터 */
+      .tab-bar{flex-wrap:wrap;gap:6px}
+      .tab-btn{font-size:.78rem;padding:7px 12px}
+      .filter-bar{flex-wrap:wrap;gap:8px}
+      .filter-bar input,.filter-bar select{font-size:.82rem;min-width:0;flex:1}
+
+      /* 상태 뱃지 */
+      .badge,.pill{font-size:.7rem;padding:3px 8px}
+
+      /* 버튼 */
+      .btn{padding:9px 14px;font-size:.82rem}
+      .btn-sm{padding:6px 10px;font-size:.74rem}
+
+      /* 요청 카드 */
+      .req-card{padding:14px}
+
+      /* 토스트 */
+      .toast{left:12px;right:12px;bottom:16px;font-size:.8rem}
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <a href="index.html" title="홈으로" style="display:flex;align-items:center;gap:10px;text-decoration:none">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span style="color:rgba(255,255,255,0.85);font-size:.92rem;font-weight:800;letter-spacing:-.2px">메디이지컨설팅</span>
+    </a>
+  </div>
+  <nav class="sidebar-menu">
+    <div class="menu-section">
+      <div class="menu-section-label">메인</div>
+      <a class="menu-item" href="dashboard.html">
+        <span class="icon">📊</span> 대시보드
+      </a>
+    </div>
+    <div class="menu-section">
+      <div class="menu-section-label">병원 관리</div>
+      <a class="menu-item" href="dashboard.html?view=hospitals">
+        <span class="icon">🏥</span> 병원 목록
+      </a>
+      <a class="menu-item" href="dashboard.html?view=consults">
+        <span class="icon">💬</span> 상담 현황
+      </a>
+      <a class="menu-item" href="dashboard.html?view=certifications">
+        <span class="icon">🏆</span> 인증 현황
+      </a>
+      <a class="menu-item" href="dashboard.html?view=schedules">
+        <span class="icon">📅</span> 일정 관리
+      </a>
+      <a class="menu-item" href="dashboard.html?view=qa">
+        <span class="icon">❓</span> 질의 &amp; 답변
+      </a>
+    </div>
+    <div class="menu-section">
+      <div class="menu-section-label">시스템</div>
+      <a class="menu-item" href="dashboard.html?view=consultants">
+        <span class="icon">🧑‍💼</span> 컨설턴트 관리
+      </a>
+      <a class="menu-item active" href="accounts.html">
+        <span class="icon">👥</span> 계정 관리
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatarText">A</div>
+      <div>
+        <div class="user-name" id="sidebarUserName">관리자</div>
+        <div class="user-role" id="sidebarUserRole">관리자</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">🚪 로그아웃</button>
+  </div>
+</aside>
+
+<!-- 모바일 사이드바 오버레이 -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left" style="display:flex;align-items:center">
+      <button class="mob-menu-btn" id="mobMenuBtn" onclick="openSidebar()" aria-label="메뉴">☰</button>
+      <div class="topbar-title">계정 관리 <span>사용자 계정을 생성하고 관리합니다</span></div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-outline btn-sm" onclick="location.href='dashboard.html'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap:round stroke-linejoin:round><polyline points="15 18 9 12 15 6"/></svg>
+        대시보드로
+      </button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- 요약 통계 -->
+    <div class="stat-pills" id="statPills">
+      <div class="stat-pill">
+        <div class="pill-dot admin"></div>
+        <div>
+          <div class="stat-pill-num" id="statAdminCount">0</div>
+          <div class="stat-pill-label">관리자 계정</div>
+        </div>
+      </div>
+      <div class="stat-pill">
+        <div class="pill-dot hosp"></div>
+        <div>
+          <div class="stat-pill-num" id="statHospCount">0</div>
+          <div class="stat-pill-label">병원 계정</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 관리자 계정 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="section-title">
+          <h2>관리자 계정</h2>
+          <span class="badge badge-admin" id="adminCount">0개</span>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAdminModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          관리자 계정 추가
+        </button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>아이디</th>
+            <th>이름</th>
+            <th>역할</th>
+            <th>비밀번호</th>
+            <th>등록일</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody id="adminTableBody">
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 병원 계정 -->
+    <div class="card">
+      <div class="card-header">
+        <div class="section-title">
+          <h2>병원 계정</h2>
+          <span class="badge badge-hosp" id="hospCount">0개</span>
+        </div>
+        <button class="btn btn-green btn-sm" onclick="openHospModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          병원 계정 추가
+        </button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>아이디</th>
+            <th>병원명</th>
+            <th>담당 컨설턴트</th>
+            <th>인증 단계</th>
+            <th>비밀번호</th>
+            <th>등록일</th>
+            <th>관리</th>
+          </tr>
+        </thead>
+        <tbody id="hospTableBody">
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ═══════════ MODAL: 관리자 계정 ═══════════ -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="adminModalTitle">관리자 계정 추가</div>
+      <button class="modal-close" onclick="closeAdminModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <label>아이디 <span class="req">*</span></label>
+        <input type="text" id="aId" placeholder="영문·숫자 조합" autocomplete="off"/>
+        <div class="fg-hint">로그인에 사용할 고유 아이디 (중복 불가)</div>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>이름 <span class="req">*</span></label>
+          <input type="text" id="aName" placeholder="홍길동"/>
+        </div>
+        <div class="fg">
+          <label>역할 <span class="req">*</span></label>
+          <select id="aRole" onchange="onAdminRoleChange()">
+            <option value="admin">관리자 (Admin)</option>
+            <option value="consultant">컨설턴트</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg" id="aLinkedConsultantRow" style="display:none">
+        <label>연결 컨설턴트 <span class="req">*</span></label>
+        <select id="aLinkedConsultant">
+          <option value="">-- 컨설턴트 선택 --</option>
+        </select>
+        <div class="fg-hint">로그인 시 해당 컨설턴트의 진행현황만 표시됩니다</div>
+      </div>
+      <div class="fg">
+        <label>비밀번호 <span class="req">*</span></label>
+        <div class="pw-wrap">
+          <input type="password" id="aPw" placeholder="비밀번호 입력"/>
+          <button class="pw-toggle" type="button" onclick="togglePw('aPw',this)">👁</button>
+        </div>
+      </div>
+      <div class="fg">
+        <label>비밀번호 확인 <span class="req">*</span></label>
+        <div class="pw-wrap">
+          <input type="password" id="aPwCf" placeholder="비밀번호 재입력"/>
+          <button class="pw-toggle" type="button" onclick="togglePw('aPwCf',this)">👁</button>
+        </div>
+      </div>
+      <div id="adminFormErr" style="display:none;color:#FF3B30;font-size:.82rem;padding:8px 12px;background:#FFF3F2;border-radius:8px;margin-top:4px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeAdminModal()">취소</button>
+      <button class="btn btn-primary" id="adminSaveBtn" onclick="saveAdmin()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL: 병원 계정 ═══════════ -->
+<div class="modal-overlay" id="hospModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="hospModalTitle">병원 계정 추가</div>
+      <button class="modal-close" onclick="closeHospModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg-row">
+        <div class="fg">
+          <label>아이디 <span class="req">*</span></label>
+          <input type="text" id="hId" placeholder="hospital4" autocomplete="off"/>
+        </div>
+        <div class="fg">
+          <label>비밀번호 <span class="req">*</span></label>
+          <div class="pw-wrap">
+            <input type="password" id="hPw" placeholder="비밀번호"/>
+            <button class="pw-toggle" type="button" onclick="togglePw('hPw',this)">👁</button>
+          </div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>병원명 <span class="req">*</span></label>
+        <input type="text" id="hName" placeholder="○○병원"/>
+      </div>
+      <div class="fg-row">
+        <div class="fg">
+          <label>담당 컨설턴트 <span class="req">*</span></label>
+          <input type="text" id="hConsultant" placeholder="홍길동"/>
+        </div>
+        <div class="fg">
+          <label>인증 단계 <span class="req">*</span></label>
+          <select id="hPhase">
+            <option value="현황 진단">현황 진단</option>
+            <option value="준비 활동">준비 활동</option>
+            <option value="모의 조사">모의 조사</option>
+            <option value="본 조사">본 조사</option>
+            <option value="인증 완료">인증 완료</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label>NAS 공유폴더 URL</label>
+        <input type="url" id="hNasUrl" placeholder="https://gofile.me/7sC3x/r4fY6kP1B" class="green-focus"/>
+        <div class="fg-hint">병원 포털 자료실에 표시될 시놀로지 NAS 공유폴더 링크 (선택)</div>
+      </div>
+      <div id="hospFormErr" style="display:none;color:#FF3B30;font-size:.82rem;padding:8px 12px;background:#FFF3F2;border-radius:8px;margin-top:4px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeHospModal()">취소</button>
+      <button class="btn btn-green" id="hospSaveBtn" onclick="saveHosp()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ CONFIRM MODAL ═══════════ -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-icon">🗑️</div>
+    <h3 id="confirmTitle">계정을 삭제하시겠습니까?</h3>
+    <p id="confirmMsg">삭제된 계정은 복구할 수 없습니다.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-outline" onclick="closeConfirm()">취소</button>
+      <button class="btn" style="background:var(--danger);color:white" id="confirmOkBtn">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// AUTH GUARD
+// ═══════════════════════════════════════════════
+if(!sessionStorage.getItem('loggedIn')){
+  location.replace('login.html');
+}
+
+// 사이드바 사용자 정보
+const uName=sessionStorage.getItem('userName')||'관리자';
+const uRole=sessionStorage.getItem('userRole')||'admin';
+document.getElementById('sidebarUserName').textContent=uName;
+document.getElementById('userAvatarText').textContent=uName[0]||'A';
+document.getElementById('sidebarUserRole').textContent=uRole==='admin'?'관리자':'컨설턴트';
+
+function doLogout(){
+  sessionStorage.clear();
+  location.replace('login.html');
+}
+
+/* ── 모바일 사이드바 토글 ─────────────────────────── */
+function openSidebar(){
+  document.querySelector('.sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('show');
+}
+function closeSidebar(){
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+(function(){
+  function handleMob(){
+    const btn=document.getElementById('mobMenuBtn');
+    if(!btn) return;
+    btn.style.display = window.innerWidth<=600 ? 'flex' : 'none';
+    if(window.innerWidth>600) closeSidebar();
+  }
+  window.addEventListener('resize', handleMob);
+  handleMob();
+})();
+
+// ═══════════════════════════════════════════════
+// DEFAULT (기본 내장) 계정
+// ═══════════════════════════════════════════════
+const DEFAULT_ADMINS = [
+  {id:'admin',    pw:'1234', name:'관리자',    role:'admin',       createdAt:'2025-01-01', isDefault:true},
+  {id:'consultant',pw:'1234',name:'컨설턴트',  role:'consultant',  createdAt:'2025-01-01', isDefault:true},
+];
+const DEFAULT_HOSPS = [];
+
+// ═══════════════════════════════════════════════
+// DASHBOARD 병원목록 동기화 헬퍼
+// ═══════════════════════════════════════════════
+function phaseToStatus(phase){
+  if(phase==='인증 완료') return 'certified';
+  if(phase==='모의 조사'||phase==='본 조사') return 'in-progress';
+  return 'preparing';
+}
+
+function syncAddToDashboard(id, name, consultant, phase, progress, createdAt){
+  const hosps=JSON.parse(localStorage.getItem('hospitals')||'[]');
+  if(hosps.find(h=>h.accountId===id)) return; // 이미 있으면 skip
+  const maxId=hosps.length>0?Math.max(...hosps.map(h=>typeof h.id==='number'?h.id:0)):0;
+  hosps.push({
+    id: maxId+1, accountId: id,
+    name, type:'병원', region:'-', phone:'-', address:'-',
+    certType:'급성기 의료기관 인증',
+    status: phaseToStatus(phase),
+    startDate: createdAt||new Date().toISOString().slice(0,10),
+    endDate:'', progress: progress||0,
+    consultant: consultant||'-', memo:''
+  });
+  localStorage.setItem('hospitals',JSON.stringify(hosps));
+}
+
+function syncUpdateToDashboard(id, name, consultant, phase, progress){
+  const hosps=JSON.parse(localStorage.getItem('hospitals')||'[]');
+  const idx=hosps.findIndex(h=>h.accountId===id);
+  if(idx>-1){
+    hosps[idx].name=name;
+    hosps[idx].consultant=consultant;
+    hosps[idx].status=phaseToStatus(phase);
+    hosps[idx].progress=progress;
+    localStorage.setItem('hospitals',JSON.stringify(hosps));
+  }
+}
+
+function syncDeleteFromDashboard(id){
+  const hosps=JSON.parse(localStorage.getItem('hospitals')||'[]');
+  localStorage.setItem('hospitals',JSON.stringify(hosps.filter(h=>h.accountId!==id)));
+}
+
+// ═══════════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════════
+function loadAdmins(){
+  const overrides=JSON.parse(localStorage.getItem('adminOverrides')||'{}');
+  const defaults=DEFAULT_ADMINS.map(a=>{
+    const ov=overrides[a.id]||{};
+    return Object.assign({},a,ov);
+  });
+  const extra=JSON.parse(localStorage.getItem('extraAdmins')||'[]');
+  return [...defaults,...extra];
+}
+function loadHosps(){
+  const extra=JSON.parse(localStorage.getItem('extraHosps')||'[]');
+  return [...DEFAULT_HOSPS,...extra];
+}
+function saveAdmins(list){
+  // DEFAULT 제외하고 저장
+  localStorage.setItem('extraAdmins',JSON.stringify(list.filter(a=>!a.isDefault)));
+}
+function saveHosps(list){
+  localStorage.setItem('extraHosps',JSON.stringify(list.filter(h=>!h.isDefault)));
+}
+
+// ═══════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════
+function renderAll(){
+  renderAdmins();
+  renderHosps();
+}
+
+function renderAdmins(){
+  const list=loadAdmins();
+  document.getElementById('adminCount').textContent=list.length+'개';
+  document.getElementById('statAdminCount').textContent=list.length;
+  const tbody=document.getElementById('adminTableBody');
+  tbody.innerHTML='';
+  list.forEach(a=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><span class="td-id">${a.id}</span>${a.isDefault?'<span class="role-default">기본</span>':''}</td>
+      <td><strong>${a.name}</strong></td>
+      <td><span class="role-badge ${a.role==='admin'?'role-admin':'role-consultant'}">${a.role==='admin'?'관리자':'컨설턴트'}</span></td>
+      <td><span class="pw-dots">••••••</span></td>
+      <td style="font-size:.8rem;color:var(--text-muted)">${a.createdAt}</td>
+      <td>
+        <div class="action-group">
+          <button class="btn-edit-sm" onclick="editAdmin('${a.id}')">수정</button>
+          ${a.isDefault?`<button class="btn-danger-sm" disabled style="opacity:.35;cursor:not-allowed">삭제</button>`:`<button class="btn-danger-sm" onclick="confirmDeleteAdmin('${a.id}')">삭제</button>`}
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderHosps(){
+  const list=loadHosps();
+  document.getElementById('hospCount').textContent=list.length+'개';
+  document.getElementById('statHospCount').textContent=list.length;
+  const tbody=document.getElementById('hospTableBody');
+  tbody.innerHTML='';
+  list.forEach(h=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><span class="td-id hosp-id">${h.id}</span>${h.isDefault?'<span class="role-default">기본</span>':''}</td>
+      <td><strong>${h.name}</strong></td>
+      <td>${h.consultant}</td>
+      <td><span class="role-badge role-hospital">${h.phase}</span></td>
+      <td><span class="pw-dots">••••••</span></td>
+      <td style="font-size:.8rem;color:var(--text-muted)">${h.createdAt}</td>
+      <td>
+        <div class="action-group">
+          <button class="btn-edit-sm" onclick="editHosp('${h.id}')">수정</button>
+          ${h.isDefault?`<button class="btn-danger-sm" disabled style="opacity:.35;cursor:not-allowed">삭제</button>`:`<button class="btn-danger-sm" onclick="confirmDeleteHosp('${h.id}')">삭제</button>`}
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// ADMIN MODAL
+// ═══════════════════════════════════════════════
+let editingAdminId=null;
+
+function openAdminModal(id=null){
+  editingAdminId=id;
+  document.getElementById('adminFormErr').style.display='none';
+  document.getElementById('adminModalTitle').textContent=id?'관리자 계정 수정':'관리자 계정 추가';
+  document.getElementById('adminSaveBtn').textContent=id?'저장':'추가';
+
+  if(id){
+    const acc=loadAdmins().find(a=>a.id===id);
+    document.getElementById('aId').value=acc.id;
+    document.getElementById('aId').disabled=true;
+    document.getElementById('aName').value=acc.name;
+    document.getElementById('aRole').value=acc.role;
+    document.getElementById('aPw').value='';
+    document.getElementById('aPwCf').value='';
+    onAdminRoleChange();
+    document.getElementById('aLinkedConsultant').value=acc.linkedConsultant||'';
+  } else {
+    document.getElementById('aId').value='';
+    document.getElementById('aId').disabled=false;
+    document.getElementById('aName').value='';
+    document.getElementById('aRole').value='admin';
+    document.getElementById('aPw').value='';
+    document.getElementById('aPwCf').value='';
+    onAdminRoleChange();
+  }
+  document.getElementById('adminModal').classList.add('open');
+}
+function closeAdminModal(){document.getElementById('adminModal').classList.remove('open')}
+function editAdmin(id){openAdminModal(id)}
+
+function onAdminRoleChange(){
+  const role=document.getElementById('aRole').value;
+  const row=document.getElementById('aLinkedConsultantRow');
+  if(role==='consultant'){
+    const cons=JSON.parse(localStorage.getItem('consultants')||'[]');
+    const sel=document.getElementById('aLinkedConsultant');
+    sel.innerHTML='<option value="">-- 컨설턴트 선택 --</option>';
+    cons.forEach(c=>{
+      const fullName=c.name+(c.rank?' '+c.rank:'');
+      const opt=document.createElement('option');
+      opt.value=c.name;
+      opt.textContent=fullName;
+      sel.appendChild(opt);
+    });
+    row.style.display='';
+  } else {
+    row.style.display='none';
+  }
+}
+
+function saveAdmin(){
+  const id=document.getElementById('aId').value.trim();
+  const name=document.getElementById('aName').value.trim();
+  const role=document.getElementById('aRole').value;
+  const pw=document.getElementById('aPw').value;
+  const pwCf=document.getElementById('aPwCf').value;
+  const linkedConsultant=role==='consultant'?document.getElementById('aLinkedConsultant').value:'';
+  const errEl=document.getElementById('adminFormErr');
+  const showErr=msg=>{errEl.textContent=msg;errEl.style.display='block';};
+
+  if(!editingAdminId&&!id){showErr('아이디를 입력해 주세요.');return;}
+  if(!name){showErr('이름을 입력해 주세요.');return;}
+  if(!editingAdminId&&!pw){showErr('비밀번호를 입력해 주세요.');return;}
+  if(pw&&pw!==pwCf){showErr('비밀번호가 일치하지 않습니다.');return;}
+  if(!editingAdminId&&!/^[a-zA-Z0-9_]+$/.test(id)){showErr('아이디는 영문·숫자·_ 만 사용 가능합니다.');return;}
+  if(role==='consultant'&&!linkedConsultant){showErr('연결할 컨설턴트를 선택해 주세요.');return;}
+
+  const all=loadAdmins();
+  if(!editingAdminId&&all.find(a=>a.id===id)){showErr('이미 사용 중인 아이디입니다.');return;}
+
+  if(editingAdminId){
+    // 수정
+    const extra=JSON.parse(localStorage.getItem('extraAdmins')||'[]');
+    const def=DEFAULT_ADMINS.find(a=>a.id===editingAdminId);
+    if(def){
+      // 기본 계정 수정은 별도 override 저장
+      const overrides=JSON.parse(localStorage.getItem('adminOverrides')||'{}');
+      overrides[editingAdminId]={name,role,pw:pw||def.pw,linkedConsultant};
+      localStorage.setItem('adminOverrides',JSON.stringify(overrides));
+    } else {
+      const idx=extra.findIndex(a=>a.id===editingAdminId);
+      if(idx>-1){extra[idx].name=name;extra[idx].role=role;extra[idx].linkedConsultant=linkedConsultant;if(pw)extra[idx].pw=pw;}
+      localStorage.setItem('extraAdmins',JSON.stringify(extra));
+    }
+    showToast('계정이 수정되었습니다.','success');
+  } else {
+    // 추가
+    const today=new Date().toISOString().slice(0,10);
+    const extra=JSON.parse(localStorage.getItem('extraAdmins')||'[]');
+    extra.push({id,pw,name,role,linkedConsultant,createdAt:today});
+    localStorage.setItem('extraAdmins',JSON.stringify(extra));
+    showToast('관리자 계정이 추가되었습니다.','success');
+  }
+  closeAdminModal();
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════
+// HOSP MODAL
+// ═══════════════════════════════════════════════
+let editingHospId=null;
+
+function openHospModal(id=null){
+  editingHospId=id;
+  document.getElementById('hospFormErr').style.display='none';
+  document.getElementById('hospModalTitle').textContent=id?'병원 계정 수정':'병원 계정 추가';
+  document.getElementById('hospSaveBtn').textContent=id?'저장':'추가';
+
+  if(id){
+    const h=loadHosps().find(x=>x.id===id);
+    document.getElementById('hId').value=h.id;
+    document.getElementById('hId').disabled=true;
+    document.getElementById('hPw').value='';
+    document.getElementById('hName').value=h.name;
+    document.getElementById('hConsultant').value=h.consultant;
+    document.getElementById('hPhase').value=h.phase;
+    // NAS URL: override 우선 > 기본
+    const overrides=JSON.parse(localStorage.getItem('hospOverrides')||'{}');
+    document.getElementById('hNasUrl').value=(overrides[id]&&overrides[id].nasUrl)||h.nasUrl||'';
+  } else {
+    document.getElementById('hId').value='';
+    document.getElementById('hId').disabled=false;
+    document.getElementById('hPw').value='';
+    document.getElementById('hName').value='';
+    document.getElementById('hConsultant').value='';
+    document.getElementById('hPhase').value='현황 진단';
+    document.getElementById('hProgress').value=10;
+    document.getElementById('hProgressVal').textContent='10%';
+    document.getElementById('hNasUrl').value='';
+  }
+  document.getElementById('hospModal').classList.add('open');
+}
+function closeHospModal(){document.getElementById('hospModal').classList.remove('open')}
+function editHosp(id){openHospModal(id)}
+
+function saveHosp(){
+  const id=document.getElementById('hId').value.trim();
+  const pw=document.getElementById('hPw').value;
+  const name=document.getElementById('hName').value.trim();
+  const consultant=document.getElementById('hConsultant').value.trim();
+  const phase=document.getElementById('hPhase').value;
+  const progress = editingHospId ? (JSON.parse(localStorage.getItem('hospOverrides')||'{}')[editingHospId]?.progress || 0) : 0;
+  const nasUrl=document.getElementById('hNasUrl').value.trim();
+  const errEl=document.getElementById('hospFormErr');
+  const showErr=msg=>{errEl.textContent=msg;errEl.style.display='block';};
+
+  if(!editingHospId&&!id){showErr('아이디를 입력해 주세요.');return;}
+  if(!editingHospId&&!pw){showErr('비밀번호를 입력해 주세요.');return;}
+  if(!name){showErr('병원명을 입력해 주세요.');return;}
+  if(!consultant){showErr('담당 컨설턴트를 입력해 주세요.');return;}
+
+  const all=loadHosps();
+  if(!editingHospId&&all.find(h=>h.id===id)){showErr('이미 사용 중인 아이디입니다.');return;}
+
+  if(editingHospId){
+    const extra=JSON.parse(localStorage.getItem('extraHosps')||'[]');
+    const def=DEFAULT_HOSPS.find(h=>h.id===editingHospId);
+    if(def){
+      const overrides=JSON.parse(localStorage.getItem('hospOverrides')||'{}');
+      overrides[editingHospId]={name,consultant,phase,progress,pw:pw||def.pw,nasUrl};
+      localStorage.setItem('hospOverrides',JSON.stringify(overrides));
+    } else {
+      const idx=extra.findIndex(h=>h.id===editingHospId);
+      if(idx>-1){
+        extra[idx].name=name;extra[idx].consultant=consultant;
+        extra[idx].phase=phase;extra[idx].progress=progress;
+        extra[idx].nasUrl=nasUrl;
+        if(pw)extra[idx].pw=pw;
+      }
+      localStorage.setItem('extraHosps',JSON.stringify(extra));
+    }
+    syncUpdateToDashboard(editingHospId,name,consultant,phase,progress);
+    showToast('병원 계정이 수정되었습니다.','success');
+  } else {
+    const today=new Date().toISOString().slice(0,10);
+    const extra=JSON.parse(localStorage.getItem('extraHosps')||'[]');
+    extra.push({id,pw,name,consultant,phase,progress,nasUrl,createdAt:today});
+    localStorage.setItem('extraHosps',JSON.stringify(extra));
+    syncAddToDashboard(id,name,consultant,phase,progress,today);
+    showToast('병원 계정이 추가되었습니다.','success');
+  }
+  closeHospModal();
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════
+// DELETE CONFIRM
+// ═══════════════════════════════════════════════
+let confirmCallback=null;
+
+function confirmDeleteAdmin(id){
+  const acc=loadAdmins().find(a=>a.id===id);
+  document.getElementById('confirmTitle').textContent='계정을 삭제하시겠습니까?';
+  document.getElementById('confirmMsg').textContent=`"${acc.name}" (${id}) 계정을 삭제합니다. 해당 계정으로 더 이상 로그인할 수 없습니다.`;
+  confirmCallback=()=>{
+    const extra=JSON.parse(localStorage.getItem('extraAdmins')||'[]');
+    localStorage.setItem('extraAdmins',JSON.stringify(extra.filter(a=>a.id!==id)));
+    showToast('계정이 삭제되었습니다.','success');
+    renderAll();
+  };
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function confirmDeleteHosp(id){
+  const h=loadHosps().find(x=>x.id===id);
+  document.getElementById('confirmTitle').textContent='병원 계정을 삭제하시겠습니까?';
+  document.getElementById('confirmMsg').textContent=`"${h.name}" (${id}) 계정을 삭제합니다. 해당 병원은 더 이상 포털에 접속할 수 없습니다.`;
+  confirmCallback=()=>{
+    const extra=JSON.parse(localStorage.getItem('extraHosps')||'[]');
+    localStorage.setItem('extraHosps',JSON.stringify(extra.filter(h=>h.id!==id)));
+    syncDeleteFromDashboard(id);
+    showToast('병원 계정이 삭제되었습니다.','success');
+    renderAll();
+  };
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm(){
+  document.getElementById('confirmOverlay').classList.remove('open');
+  confirmCallback=null;
+}
+document.getElementById('confirmOkBtn').addEventListener('click',()=>{
+  if(confirmCallback)confirmCallback();
+  closeConfirm();
+});
+
+// ═══════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════
+function togglePw(inputId,btn){
+  const el=document.getElementById(inputId);
+  if(el.type==='password'){el.type='text';btn.textContent='🙈';}
+  else{el.type='password';btn.textContent='👁';}
+}
+
+function showToast(msg,type='success'){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.textContent=(type==='success'?'✓ ':type==='error'?'✕ ':'')+msg;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.animation='toastOut .25s ease forwards';setTimeout(()=>t.remove(),250)},2500);
+}
+
+// 오버레이 클릭으로 모달 닫기
+document.getElementById('adminModal').addEventListener('click',e=>{if(e.target===document.getElementById('adminModal'))closeAdminModal()});
+document.getElementById('hospModal').addEventListener('click',e=>{if(e.target===document.getElementById('hospModal'))closeHospModal()});
+document.getElementById('confirmOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('confirmOverlay'))closeConfirm()});
+
+// 초기 렌더
+renderAll();
+</script>
+</body>
+</html>
